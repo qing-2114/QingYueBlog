@@ -10,105 +10,126 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+const categories = [...new Set(posts.map((post) => post.data.category))];
+const getExcerpt = (post: (typeof posts)[number]) => {
+	const body = post.body
+		.replace(/^import .*$/gm, '')
+		.replace(/```[\s\S]*?```/g, '')
+		.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+		.replace(/[#>*_`\[\]()]/g, '')
+		.replace(/\s+/g, ' ')
+		.trim();
+	const source = (body || post.data.description).trim();
+	return source.length > 220 ? `${source.slice(0, 220).trim()}…` : source;
+};
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
+			main { width: min(1120px, calc(100% - 2rem)); padding-top: 4rem; }
+			.blog-intro { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: 2rem; }
+			.eyebrow { margin: 0 0 .55rem; color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
+			.blog-intro h1 { margin: 0; font-size: clamp(2.4rem, 6vw, 4rem); }
+			.blog-intro-copy { max-width: 28rem; margin: 0 0 .35rem; color: var(--muted); font-size: .98rem; }
+			.toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) auto; gap: 1rem; align-items: center; margin-bottom: 2rem; padding: .8rem; background: rgba(255,255,255,.64); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 30px rgba(38,111,170,.07); backdrop-filter: blur(14px); }
+			.search-wrap { position: relative; }
+			.search-wrap svg { position: absolute; top: 50%; left: .9rem; width: 1.1rem; height: 1.1rem; color: var(--muted); transform: translateY(-50%); pointer-events: none; }
+			#post-search { width: 100%; padding: .72rem 1rem .72rem 2.7rem; color: var(--ink); font: inherit; font-size: .9rem; background: rgba(245,250,255,.82); border: 1px solid transparent; border-radius: 9px; outline: none; }
+			#post-search:focus { border-color: rgba(40,127,195,.5); box-shadow: 0 0 0 3px rgba(40,127,195,.12); }
+			.category-list { display: flex; flex-wrap: wrap; justify-content: end; gap: .4rem; }
+			.category-button { padding: .52rem .78rem; color: var(--muted); font: inherit; font-size: .78rem; background: transparent; border: 1px solid transparent; border-radius: 999px; cursor: pointer; transition: .2s ease; }
+			.category-button:hover, .category-button.is-active { color: #fff; background: var(--accent); box-shadow: 0 5px 12px rgba(40,127,195,.2); }
+			.results-line { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 0 0 .9rem; color: var(--muted); font-size: .82rem; }
+			.results-line strong { color: var(--ink); }
+			.post-grid { display: flex; max-width: 980px; margin: 0 auto; flex-direction: column; gap: 1.25rem; list-style: none; padding: 0; }
+			.post-card { min-width: 0; }
+			.post-card > a { display: block; overflow: hidden; color: inherit; background: rgba(255,255,255,.7); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 24px rgba(38,111,170,.06); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+			.post-card > a:hover { border-color: rgba(40,127,195,.35); box-shadow: var(--box-shadow); transform: translateY(-4px); }
+			.post-card img { display: block; width: 100%; aspect-ratio: 16 / 6; object-fit: cover; border-radius: 0; }
+			.card-content { display: flex; flex-direction: column; padding: 1.35rem 1.5rem 1.45rem; }
+			.card-meta { display: flex; justify-content: space-between; gap: .5rem; margin-bottom: .7rem; color: var(--muted); font-size: .74rem; }
+			.category-label { color: var(--accent); font-weight: 700; }
+			.title { margin: 0 0 .65rem; color: var(--ink); font-size: clamp(1.35rem, 2.3vw, 1.75rem); line-height: 1.25; }
+			.description { display: -webkit-box; max-width: 760px; overflow: hidden; margin: 0; color: var(--muted); font-size: .98rem; line-height: 1.7; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
+			.card-footer { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-top: auto; padding-top: 1.1rem; color: var(--accent); font-size: .78rem; }
+			.tags { display: flex; flex-wrap: wrap; gap: .3rem; color: var(--muted); }
+			.tag { padding: .18rem .45rem; background: rgba(91,163,224,.1); border-radius: 999px; font-size: .68rem; }
+			.empty-state { display: none; padding: 3rem 1rem; text-align: center; color: var(--muted); background: rgba(255,255,255,.48); border: 1px dashed var(--line); border-radius: 14px; }
+			.empty-state.is-visible { display: block; }
+			@media (max-width: 860px) { .toolbar { grid-template-columns: 1fr; } .category-list { justify-content: start; } }
+			@media (max-width: 620px) { main { padding-top: 3rem; } .blog-intro { display: block; } .blog-intro-copy { margin-top: 1rem; } .post-card img { aspect-ratio: 16 / 8; } .card-content { padding: 1.1rem 1.1rem 1.2rem; } .results-line { align-items: start; flex-direction: column; gap: .2rem; } }
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
+			<section class="blog-intro" aria-labelledby="blog-title">
+				<div><p class="eyebrow">THE JOURNAL</p><h1 id="blog-title">文章</h1></div>
+				<p class="blog-intro-copy">把灵感、实践和生活整理成一篇篇可以回看的文字。</p>
 			</section>
+			<section class="toolbar" aria-label="文章筛选">
+				<label class="search-wrap" for="post-search">
+					<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+					<span class="sr-only">搜索文章</span><input id="post-search" type="search" placeholder="搜索标题、简介或标签…" autocomplete="off" />
+				</label>
+				<div class="category-list" role="group" aria-label="按分类筛选">
+					<button class="category-button is-active" type="button" data-category="all" aria-pressed="true">全部</button>
+					{categories.map((category) => <button class="category-button" type="button" data-category={category} aria-pressed="false">{category}</button>)}
+				</div>
+			</section>
+			<div class="results-line"><span>共 <strong id="result-count">{posts.length}</strong> 篇文章</span><span id="active-filter">全部文章</span></div>
+			<ul class="post-grid" id="post-grid">
+				{posts.map((post) => (
+					<li class="post-card" data-category={post.data.category} data-search={`${post.data.title} ${post.data.description} ${post.data.category} ${post.data.tags.join(' ')}`.toLowerCase()}>
+						<a href={`/blog/${post.id}/`}>
+							{post.data.heroImage && <Image width={720} height={360} src={post.data.heroImage} alt="" />}
+							<div class="card-content">
+								<div class="card-meta"><span class="category-label">{post.data.category}</span><FormattedDate date={post.data.pubDate} /></div>
+								<h2 class="title">{post.data.title}</h2><p class="description">{getExcerpt(post)}</p>
+								<div class="card-footer"><div class="tags">{post.data.tags.slice(0, 2).map((tag) => <span class="tag">#{tag}</span>)}</div><span>阅读 →</span></div>
+							</div>
+						</a>
+					</li>
+				))}
+			</ul>
+			<p class="empty-state" id="empty-state">没有找到匹配的文章，试试其他关键词或分类。</p>
 		</main>
+		<script>
+			const searchInput = document.querySelector('#post-search');
+			const cards = [...document.querySelectorAll('.post-card')];
+			const categoryButtons = [...document.querySelectorAll('.category-button')];
+			const resultCount = document.querySelector('#result-count');
+			const activeFilter = document.querySelector('#active-filter');
+			const emptyState = document.querySelector('#empty-state');
+			let selectedCategory = 'all';
+			const updateResults = () => {
+				const query = searchInput.value.trim().toLowerCase();
+				let visibleCount = 0;
+				cards.forEach((card) => {
+					const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
+					const matchesQuery = !query || card.dataset.search.includes(query);
+					const visible = matchesCategory && matchesQuery;
+					card.hidden = !visible;
+					if (visible) visibleCount += 1;
+				});
+				resultCount.textContent = visibleCount;
+				activeFilter.textContent = selectedCategory === 'all' ? (query ? `搜索“${searchInput.value.trim()}”` : '全部文章') : `分类：${selectedCategory}`;
+				emptyState.classList.toggle('is-visible', visibleCount === 0);
+			};
+			searchInput.addEventListener('input', updateResults);
+			categoryButtons.forEach((button) => button.addEventListener('click', () => {
+				selectedCategory = button.dataset.category;
+				categoryButtons.forEach((item) => {
+					const isActive = item === button;
+					item.classList.toggle('is-active', isActive);
+					item.setAttribute('aria-pressed', String(isActive));
+				});
+				updateResults();
+			}));
+		</script>
 		<Footer />
 	</body>
 </html>

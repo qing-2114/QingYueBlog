@@ -1,63 +1,209 @@
 ---
-import AboutHeroImage from '../assets/blog-placeholder-about.jpg';
-import Layout from '../layouts/BlogPost.astro';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { execFileSync } from 'node:child_process';
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+const dateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const commitDates = new Map<string, number>();
+try {
+	const log = execFileSync('git', ['log', '--since=3 years ago', '--format=%ad', '--date=short', '--', 'src'], { encoding: 'utf8' });
+	for (const date of log.split(/\r?\n/).filter(Boolean)) commitDates.set(date, (commitDates.get(date) ?? 0) + 1);
+} catch {
+	// The chart remains empty on hosts that build from a source archive without .git history.
+}
+const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
+const years = [today.getFullYear(), today.getFullYear() - 1, today.getFullYear() - 2];
+const buildYearGraph = (year: number) => {
+	const firstDay = new Date(year, 0, 1);
+	firstDay.setDate(firstDay.getDate() - firstDay.getDay());
+	const levels = Array.from({ length: 53 }, (_, week) => Array.from({ length: 7 }, (_, day) => {
+		const date = new Date(firstDay);
+		date.setDate(firstDay.getDate() + week * 7 + day);
+		if (date.getFullYear() !== year) return { level: 0, inYear: false, date: dateKey(date) };
+		const count = commitDates.get(dateKey(date)) ?? 0;
+		return { level: count === 0 ? 0 : count === 1 ? 2 : count === 2 ? 3 : 4, inYear: true, date: dateKey(date) };
+	}));
+	const count = [...commitDates.entries()].filter(([date]) => date.startsWith(`${year}-`)).reduce((sum, [, value]) => sum + value, 0);
+	const months = Array.from({ length: 12 }, (_, index) => monthFormatter.format(new Date(year, index, 1)));
+	return { year, levels, count, months };
+};
+const yearGraphs = years.map(buildYearGraph);
 ---
 
-<Layout
-	title="About Me"
-	description="Lorem ipsum dolor sit amet"
-	pubDate={new Date('August 08 2021')}
-	heroImage={AboutHeroImage}
->
-	<p>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-		labore et dolore magna aliqua. Vitae ultricies leo integer malesuada nunc vel risus commodo
-		viverra. Adipiscing enim eu turpis egestas pretium. Euismod elementum nisi quis eleifend quam
-		adipiscing. In hac habitasse platea dictumst vestibulum. Sagittis purus sit amet volutpat. Netus
-		et malesuada fames ac turpis egestas. Eget magna fermentum iaculis eu non diam phasellus
-		vestibulum lorem. Varius sit amet mattis vulputate enim. Habitasse platea dictumst quisque
-		sagittis. Integer quis auctor elit sed vulputate mi. Dictumst quisque sagittis purus sit amet.
-	</p>
+<!doctype html>
+<html lang="zh-CN">
+	<head><BaseHead title="关于清月" description="认识清月，以及这个博客的由来。" /></head>
+	<body>
+		<Header />
+		<main class="about-page">
+			<section class="about-hero" aria-labelledby="about-title">
+			<div class="intro-grid">
+				<div class="hero-copy">
+					<p class="eyebrow">A LITTLE INTRODUCTION</p>
+					<h1 id="about-title"><span>清月</span></h1>
+					<p class="lead">一个喜欢把复杂的事想清楚，再用自己的方式写下来的人。</p>
+					<p class="hero-note">这里没有标准答案，只有正在发生的思考。欢迎你在字里行间，认识一个持续学习、持续创造的我。</p>
+					<div class="hero-actions"><a class="button primary" href="/blog">逛逛文章 <span aria-hidden="true">→</span></a></div>
+				</div>
+				<aside class="profile-card" aria-label="清月的个人标签和更新方向">
+					<div class="profile-top"><span class="pulse"></span><span>PROFILE · 2026</span></div>
+					<h2>正在关注的事</h2>
+					<div class="tag-list"><span>技术探索</span><span>持续阅读</span><span>生活观察</span></div>
+					<div class="profile-divider"></div>
+					<div class="profile-row profile-direction"><span>更新方向</span><strong class="direction-tags"><span>AI Agent</span><span>ROS</span><span>STM32</span><span>机器人</span></strong></div>
+					<a class="profile-github" href="https://github.com/qing-2114" target="_blank" rel="noreferrer"><span>GitHub</span><span aria-hidden="true">qing-2114 ↗</span></a>
+				</aside>
+			</div>
+				<div class="contribution-card" aria-label="博客提交贡献记录">
+					<div class="contribution-header"><strong id="contribution-total">{yearGraphs[0].count} {yearGraphs[0].count === 1 ? 'contribution' : 'contributions'} in {yearGraphs[0].year}</strong></div>
+					<div class="contribution-body">
+						<div class="graph-wrap">
+							{yearGraphs.map((graph, index) => <div class:list={["year-panel", { active: index === 0 }]} data-year={graph.year} data-count={graph.count}>
+								<div class="month-labels">{graph.months.map((month) => <span>{month}</span>)}</div>
+								<div class="graph-row"><div class="day-labels" aria-hidden="true"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div><div class="contribution-grid" role="img" aria-label={`${graph.year} 年每天的博客提交热力图`}>{graph.levels.map((week) => <div class="week">{week.map((cell) => <span class:list={[`level-${cell.level}`, { outside: !cell.inYear }]} title={cell.inYear ? `${cell.date}: ${cell.level} contributions` : undefined}></span>)}</div>)}</div></div>
+							</div>)}
+							<div class="graph-footer"><span class="legend">Less <i class="level-0"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i> More</span></div>
+						</div>
+						<div class="year-list" aria-label="年份">{years.map((year, index) => <button class:list={[{ active: index === 0 }]} type="button" data-year-tab={year} data-count={yearGraphs[index].count} aria-pressed={index === 0}>{year}</button>)}</div>
+					</div>
+				</div>
+			</section>
 
-	<p>
-		Morbi tristique senectus et netus. Id semper risus in hendrerit gravida rutrum quisque non
-		tellus. Habitasse platea dictumst quisque sagittis purus sit amet. Tellus molestie nunc non
-		blandit massa. Cursus vitae congue mauris rhoncus. Accumsan tortor posuere ac ut. Fringilla urna
-		porttitor rhoncus dolor. Elit ullamcorper dignissim cras tincidunt lobortis. In cursus turpis
-		massa tincidunt dui ut ornare lectus. Integer feugiat scelerisque varius morbi enim nunc.
-		Bibendum neque egestas congue quisque egestas diam. Cras ornare arcu dui vivamus arcu felis
-		bibendum. Dignissim suspendisse in est ante in nibh mauris. Sed tempus urna et pharetra pharetra
-		massa massa ultricies mi.
-	</p>
+			<section class="content-grid" aria-label="关于清月">
+				<div class="story-column">
+					<div class="section-label"><span>01</span><span>我在记录什么</span></div>
+					<h2>把日子过成一场<br /><em>长期实验</em></h2>
+					<p>我会在这里记录技术实践、阅读笔记、关于生活的观察，以及一些还没有标准答案的问题。写作对我来说不是总结，而是一次次把问题摊开、重新理解的过程。</p>
+					<p>如果某篇文章恰好帮你少走了一点弯路，或者让你对一个熟悉的事物多了一个角度，那这次记录就有了意义。</p>
+				</div>
+				<aside class="now-card"><div class="now-top"><span class="pulse"></span><span>NOW</span></div><h3>此刻，正在路上</h3><ul><li><span>01</span><div><strong>技术探索</strong><small>把好奇心变成可以运行的东西</small></div></li><li><span>02</span><div><strong>持续阅读</strong><small>收集值得反复回看的想法</small></div></li><li><span>03</span><div><strong>认真生活</strong><small>为平凡的瞬间保留一点注意力</small></div></li></ul></aside>
+			</section>
 
-	<p>
-		Mollis nunc sed id semper risus in. Convallis a cras semper auctor neque. Diam sit amet nisl
-		suscipit. Lacus viverra vitae congue eu consequat ac felis donec. Egestas integer eget aliquet
-		nibh praesent tristique magna sit amet. Eget magna fermentum iaculis eu non diam. In vitae
-		turpis massa sed elementum. Tristique et egestas quis ipsum suspendisse ultrices. Eget lorem
-		dolor sed viverra ipsum. Vel turpis nunc eget lorem dolor sed viverra. Posuere ac ut consequat
-		semper viverra nam. Laoreet suspendisse interdum consectetur libero id faucibus. Diam phasellus
-		vestibulum lorem sed risus ultricies tristique. Rhoncus dolor purus non enim praesent elementum
-		facilisis. Ultrices tincidunt arcu non sodales neque. Tempus egestas sed sed risus pretium quam
-		vulputate. Viverra suspendisse potenti nullam ac tortor vitae purus faucibus ornare. Fringilla
-		urna porttitor rhoncus dolor purus non. Amet dictum sit amet justo donec enim.
-	</p>
+			<section class="values" aria-labelledby="values-title">
+				<div class="section-heading"><div><p class="eyebrow">MY SMALL RULES</p><h2 id="values-title">写给未来的自己</h2></div><p class="heading-aside">慢一点，深一点，<br />把重要的事做好。</p></div>
+				<div class="value-grid"><article><span class="value-number">01</span><h3>保持好奇</h3><p>先问为什么，再决定怎么做。</p></article><article><span class="value-number">02</span><h3>诚实记录</h3><p>承认不知道，也记录走过的弯路。</p></article><article><span class="value-number">03</span><h3>慢慢变好</h3><p>让每一次小小的迭代都算数。</p></article></div>
+			</section>
 
-	<p>
-		Mattis ullamcorper velit sed ullamcorper morbi tincidunt. Tortor posuere ac ut consequat semper
-		viverra. Tellus mauris a diam maecenas sed enim ut sem viverra. Venenatis urna cursus eget nunc
-		scelerisque viverra mauris in. Arcu ac tortor dignissim convallis aenean et tortor at. Curabitur
-		gravida arcu ac tortor dignissim convallis aenean et tortor. Egestas tellus rutrum tellus
-		pellentesque eu. Fusce ut placerat orci nulla pellentesque dignissim enim sit amet. Ut enim
-		blandit volutpat maecenas volutpat blandit aliquam etiam. Id donec ultrices tincidunt arcu. Id
-		cursus metus aliquam eleifend mi.
-	</p>
+			<section class="closing-note"><div><p class="eyebrow">THANKS FOR STOPPING BY</p><h2>路虽远，行则将至。</h2></div><a class="button light" href="/blog">从一篇文章开始 <span aria-hidden="true">↗</span></a></section>
+		</main>
+		<Footer />
+	</body>
+</html>
 
-	<p>
-		Tempus quam pellentesque nec nam aliquam sem. Risus at ultrices mi tempus imperdiet. Id porta
-		nibh venenatis cras sed felis eget velit. Ipsum a arcu cursus vitae. Facilisis magna etiam
-		tempor orci eu lobortis elementum. Tincidunt dui ut ornare lectus sit. Quisque non tellus orci
-		ac. Blandit libero volutpat sed cras. Nec tincidunt praesent semper feugiat nibh sed pulvinar
-		proin gravida. Egestas integer eget aliquet nibh praesent tristique magna.
-	</p>
-</Layout>
+<script>
+	const tabs = document.querySelectorAll<HTMLButtonElement>('[data-year-tab]');
+	const panels = document.querySelectorAll<HTMLElement>('.year-panel');
+	const total = document.querySelector<HTMLElement>('#contribution-total');
+	tabs.forEach((tab) => tab.addEventListener('click', () => {
+		const year = tab.dataset.yearTab;
+		tabs.forEach((item) => {
+			const active = item === tab;
+			item.classList.toggle('active', active);
+			item.setAttribute('aria-pressed', String(active));
+		});
+		panels.forEach((panel) => panel.classList.toggle('active', panel.dataset.year === year));
+		if (total && year) {
+			const count = Number(tab.dataset.count ?? 0);
+			total.textContent = `${count} ${count === 1 ? 'contribution' : 'contributions'} in ${year}`;
+		}
+	}));
+</script>
+
+<style>
+	.about-page { padding-top: 3.6rem; }
+	.about-hero { display: flex; flex-direction: column; align-items: stretch; gap: clamp(3rem, 5vw, 4.5rem); min-height: 510px; padding: 2rem 0 6.5rem; }
+	.intro-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); gap: clamp(2rem, 7vw, 7rem); align-items: center; }
+	.hero-copy { max-width: 700px; padding: 2.2rem 2.4rem 2.3rem; background: rgba(255,255,255,.42); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 14px 34px rgba(38,111,170,.07); backdrop-filter: blur(12px); }
+	.eyebrow { margin: 0 0 1.1rem; color: var(--accent); font-size: .7rem; font-weight: 700; letter-spacing: .2em; }
+	.hero-copy h1 { max-width: 620px; margin-bottom: 1.5rem; }
+	.hero-copy h1 span { color: var(--accent); white-space: nowrap; }
+	.lead { max-width: 510px; margin-bottom: .8rem; color: var(--ink); font-size: clamp(1.15rem, 2.5vw, 1.45rem); line-height: 1.55; }
+	.hero-note { max-width: 500px; margin-bottom: 2rem; color: var(--muted); font-size: .96rem; }
+	.hero-actions { display: flex; align-items: center; gap: 1.3rem; flex-wrap: wrap; }
+	.button { display: inline-flex; align-items: center; gap: .65rem; padding: .7rem 1.1rem; border-radius: 9px; font-size: .88rem; text-decoration: none; transition: transform .2s, box-shadow .2s; }
+	.button:hover { transform: translateY(-2px); }
+	.button.primary { color: #fff; background: linear-gradient(135deg, #4b9cda, #287fc3); box-shadow: 0 10px 22px rgba(40,127,195,.22); }
+	.text-link { color: var(--muted); font-size: .88rem; text-decoration: none; }
+	.text-link:hover { color: var(--accent); }
+	.text-link span { margin-left: .2rem; color: var(--accent); }
+	.profile-card { position: relative; overflow: hidden; padding: 1.8rem 1.85rem 1.45rem; background: linear-gradient(145deg, rgba(255,255,255,.68), rgba(224,241,253,.5)); border: 1px solid rgba(138,180,224,.3); border-radius: 14px; box-shadow: 0 18px 40px rgba(38,111,170,.11); backdrop-filter: blur(16px); }
+	.profile-card::before { position: absolute; top: 0; right: 12%; left: 12%; height: 2px; background: linear-gradient(90deg, transparent, rgba(75,156,218,.55), transparent); content: ''; }
+	.profile-top { display: flex; align-items: center; gap: .65rem; margin-bottom: 1.45rem; color: var(--accent); font-size: .68rem; font-weight: 700; letter-spacing: .18em; }
+	.profile-card h2 { margin-bottom: 1.15rem; font-size: 1.55rem; letter-spacing: -.02em; }
+	.tag-list { display: flex; flex-wrap: wrap; gap: .45rem; }
+	.tag-list span { padding: .34rem .68rem; color: var(--accent-dark); background: rgba(91,163,224,.1); border: 1px solid rgba(91,163,224,.22); border-radius: 8px; font-size: .76rem; }
+	.profile-divider { margin: 1.45rem 0 1.05rem; border-top: 1px solid rgba(138,180,224,.24); }
+	.profile-row { display: flex; justify-content: space-between; gap: 1rem; color: var(--muted); font-size: .78rem; }
+	.profile-row strong { color: var(--ink); font-weight: 400; text-align: right; }
+	.profile-direction { display: block; }
+	.profile-direction > span { display: block; margin-bottom: .65rem; color: var(--accent); font-size: .68rem; font-weight: 700; letter-spacing: .13em; }
+	.direction-tags { display: flex; flex-wrap: wrap; gap: .45rem; }
+	.direction-tags span { padding: .3rem .65rem; color: var(--accent-dark); background: rgba(91,163,224,.1); border: 1px solid rgba(91,163,224,.22); border-radius: 8px; font-size: .76rem; font-weight: 400; line-height: 1.7; }
+	.profile-github { display: flex; justify-content: space-between; gap: 1rem; margin-top: 1.15rem; padding-top: .95rem; color: var(--accent); border-top: 1px solid rgba(138,180,224,.24); font-size: .8rem; text-decoration: none; }
+	.profile-github:hover { color: var(--accent-dark); }
+	.contribution-card { width: 100%; padding: 1.35rem 1.4rem 1.3rem; color: var(--muted); background: rgba(255,255,255,.58); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--box-shadow); backdrop-filter: blur(15px); font-size: .76rem; }
+	.contribution-header { display: flex; justify-content: space-between; align-items: center; gap: .7rem; margin-bottom: .65rem; }
+	.contribution-header strong { color: var(--ink); font-size: .92rem; font-weight: 700; white-space: nowrap; }
+	.contribution-header span { white-space: nowrap; }
+	.contribution-header b { margin-left: .2rem; font-size: .65rem; }
+	.contribution-body { display: flex; align-items: stretch; gap: .65rem; }
+	.graph-wrap { min-width: 0; flex: 1; overflow: hidden; }
+	.year-panel { display: none; }
+	.year-panel.active { display: block; }
+	.month-labels { display: grid; grid-template-columns: repeat(12, 1fr); height: 1.45rem; padding-left: 2.05rem; color: var(--muted); }
+	.month-labels span { text-align: left; }
+	.graph-row { display: flex; gap: .35rem; }
+	.day-labels { display: grid; grid-template-rows: repeat(7, 1fr); width: 1.7rem; color: var(--muted); font-size: .7rem; line-height: 1; text-align: right; }
+	.day-labels span { align-self: center; }
+	.contribution-grid { display: grid; grid-template-columns: repeat(53, minmax(0, 1fr)); gap: 3px; width: 100%; }
+	.week { display: grid; grid-template-rows: repeat(7, minmax(0, 1fr)); gap: 3px; }
+	.contribution-grid span, .legend i { display: block; aspect-ratio: 1; min-width: 0; border: 1px solid rgba(40,127,195,.12); border-radius: 2px; }
+	.contribution-grid span.outside { visibility: hidden; border-color: transparent; background: transparent; }
+	.level-0 { background: #fff; }
+	.level-2 { background: #a5d6f3; }
+	.level-3 { background: #5eaee0; }
+	.level-4 { background: #2478b8; }
+	.graph-footer { display: flex; justify-content: flex-end; align-items: center; gap: .5rem; margin-top: .65rem; }
+	.legend { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+	.legend i { width: 11px; }
+	.year-list { display: flex; flex-direction: column; gap: .35rem; min-width: 3.8rem; color: var(--muted); text-align: center; }
+	.year-list button { padding: .64rem .35rem; color: var(--muted); background: transparent; border: 0; border-radius: 8px; font: inherit; cursor: pointer; transition: color .2s, background .2s, transform .2s; }
+	.year-list button:hover { color: var(--accent); background: rgba(91,163,224,.1); }
+	.year-list button.active { color: #fff; background: var(--accent); font-weight: 700; box-shadow: 0 7px 16px rgba(40,127,195,.2); }
+	.year-list span { padding: .55rem .2rem; }
+	.pulse { display: inline-block; width: .42rem; height: .42rem; background: #55c48a; border-radius: 50%; box-shadow: 0 0 0 4px rgba(85,196,138,.13); }
+	.content-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(310px, .72fr); gap: clamp(3rem, 10vw, 9rem); align-items: start; padding: 5.4rem 0; border-top: 1px solid var(--line); }
+	.section-label { display: flex; gap: 1.1rem; align-items: center; margin-bottom: 1.3rem; color: var(--muted); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; }
+	.section-label span:first-child { color: var(--accent); font-weight: 700; }
+	.story-column h2 { margin-bottom: 1.4rem; font-size: clamp(2rem, 4vw, 3.1rem); letter-spacing: -.04em; }
+	.story-column h2 em { color: var(--accent); font-style: normal; }
+	.story-column p { max-width: 570px; color: var(--muted); font-size: .98rem; }
+	.now-card { padding: 1.5rem 1.6rem 1.3rem; background: rgba(255,255,255,.63); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 14px 32px rgba(38,111,170,.09); backdrop-filter: blur(15px); }
+	.now-top { display: flex; align-items: center; gap: .7rem; margin-bottom: 1.8rem; color: var(--accent); font-size: .68rem; font-weight: 700; letter-spacing: .2em; }
+	.now-card h3 { margin-bottom: 1.2rem; font-size: 1.5rem; }
+	.now-card ul { margin: 0; padding: 0; list-style: none; }
+	.now-card li { display: flex; gap: .9rem; padding: .8rem 0; border-top: 1px solid rgba(138,180,224,.2); }
+	.now-card li > span { color: var(--accent); font-size: .7rem; font-weight: 700; }
+	.now-card strong, .now-card small { display: block; }
+	.now-card strong { font-size: .93rem; }
+	.now-card small { margin-top: .16rem; color: var(--muted); font-size: .77rem; line-height: 1.4; }
+	.values { padding: 5.5rem 0 6.5rem; border-top: 1px solid var(--line); }
+	.section-heading { display: flex; justify-content: space-between; align-items: end; gap: 2rem; margin-bottom: 2.2rem; }
+	.section-heading h2 { margin: 0; font-size: clamp(2rem, 4vw, 2.8rem); }
+	.heading-aside { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.6; text-align: right; }
+	.value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+	.value-grid article { min-height: 170px; padding: 1.4rem; background: rgba(255,255,255,.5); border: 1px solid var(--line); border-radius: 12px; transition: transform .2s, background .2s; }
+	.value-grid article:hover { background: rgba(255,255,255,.78); transform: translateY(-3px); }
+	.value-number { color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
+	.value-grid h3 { margin: 1.4rem 0 .35rem; font-size: 1.25rem; }
+	.value-grid p { margin: 0; color: var(--muted); font-size: .86rem; }
+	.closing-note { display: flex; justify-content: space-between; align-items: center; gap: 2rem; padding: 2.2rem 2.5rem; color: #fff; background: linear-gradient(110deg, #1b5d8f, #398dcc); border-radius: 16px; box-shadow: 0 18px 40px rgba(30,95,145,.2); }
+	.closing-note .eyebrow { margin-bottom: .65rem; color: rgba(255,255,255,.68); }
+	.closing-note h2 { margin: 0; color: #fff; font-family: "SimSun", "宋体", serif; font-size: clamp(1.7rem, 3vw, 2.35rem); font-weight: 400; letter-spacing: .08em; }
+	.button.light { color: var(--accent-dark); background: #fff; box-shadow: 0 7px 16px rgba(13,56,88,.15); white-space: nowrap; }
+	@media (max-width: 980px) { .about-page { padding-top: 2rem; } .about-hero { gap: 2.7rem; padding-bottom: 5rem; } .intro-grid { grid-template-columns: 1fr; gap: 2.7rem; } .profile-card { max-width: 620px; } .contribution-card { max-width: 100%; } .content-grid { grid-template-columns: 1fr; gap: 3rem; } .now-card { max-width: 560px; } }
+	@media (max-width: 560px) { .about-hero { min-height: 0; } .contribution-header { align-items: flex-start; flex-direction: column; gap: .25rem; } .contribution-card { overflow-x: auto; } .contribution-body { min-width: 420px; } .graph-wrap { overflow-x: auto; } .month-labels, .contribution-grid { min-width: 560px; } .value-grid { grid-template-columns: 1fr; } .section-heading, .closing-note { align-items: start; flex-direction: column; } .heading-aside { text-align: left; } .closing-note { padding: 1.7rem 1.4rem; } .closing-note .button { margin-top: .5rem; } }
+</style>

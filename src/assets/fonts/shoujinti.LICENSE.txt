@@ -1,0 +1,4 @@
+瘦金体字体文件来源：
+https://github.com/caicaibuchicai/textFont
+
+该字体按 MIT License 发布。字体文件随本项目分发时保留来源说明。
