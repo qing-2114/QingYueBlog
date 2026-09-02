@@ -16,7 +16,7 @@ try {
 }
 const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
 const years = [today.getFullYear(), today.getFullYear() - 1, today.getFullYear() - 2];
-const base = import.meta.env.BASE_URL;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const buildYearGraph = (year: number) => {
 	const firstDay = new Date(year, 0, 1);
 	firstDay.setDate(firstDay.getDate() - firstDay.getDay());
