@@ -16,6 +16,7 @@ try {
 }
 const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' });
 const years = [today.getFullYear(), today.getFullYear() - 1, today.getFullYear() - 2];
+const base = import.meta.env.BASE_URL;
 const buildYearGraph = (year: number) => {
 	const firstDay = new Date(year, 0, 1);
 	firstDay.setDate(firstDay.getDate() - firstDay.getDay());
@@ -46,7 +47,7 @@ const yearGraphs = years.map(buildYearGraph);
 					<h1 id="about-title"><span>清月</span></h1>
 					<p class="lead">一个喜欢把复杂的事想清楚，再用自己的方式写下来的人。</p>
 					<p class="hero-note">这里没有标准答案，只有正在发生的思考。欢迎你在字里行间，认识一个持续学习、持续创造的我。</p>
-					<div class="hero-actions"><a class="button primary" href="/blog">逛逛文章 <span aria-hidden="true">→</span></a></div>
+					<div class="hero-actions"><a class="button primary" href={`${base}blog`}>逛逛文章 <span aria-hidden="true">→</span></a></div>
 				</div>
 				<aside class="profile-card" aria-label="清月的个人标签和更新方向">
 					<div class="profile-top"><span class="pulse"></span><span>PROFILE · 2026</span></div>
@@ -87,7 +88,7 @@ const yearGraphs = years.map(buildYearGraph);
 				<div class="value-grid"><article><span class="value-number">01</span><h3>保持好奇</h3><p>先问为什么，再决定怎么做。</p></article><article><span class="value-number">02</span><h3>诚实记录</h3><p>承认不知道，也记录走过的弯路。</p></article><article><span class="value-number">03</span><h3>慢慢变好</h3><p>让每一次小小的迭代都算数。</p></article></div>
 			</section>
 
-			<section class="closing-note"><div><p class="eyebrow">THANKS FOR STOPPING BY</p><h2>路虽远，行则将至。</h2></div><a class="button light" href="/blog">从一篇文章开始 <span aria-hidden="true">↗</span></a></section>
+			<section class="closing-note"><div><p class="eyebrow">THANKS FOR STOPPING BY</p><h2>路虽远，行则将至。</h2></div><a class="button light" href={`${base}blog`}>从一篇文章开始 <span aria-hidden="true">↗</span></a></section>
 		</main>
 		<Footer />
 	</body>

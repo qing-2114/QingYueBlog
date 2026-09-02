@@ -7,6 +7,7 @@ import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
 const posts = (await getCollection('blog')).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);
+const base = import.meta.env.BASE_URL;
 ---
 
 <!doctype html>
@@ -19,13 +20,13 @@ const posts = (await getCollection('blog')).sort((a, b) => b.data.pubDate.valueO
 				<p class="eyebrow">PERSONAL JOURNAL</p>
 				<h1 class="script-title">QingYue Blog</h1>
 				<p class="intro calligraphy-intro">这里是我的数字小屋，记录技术探索、日常思考，以及那些值得慢慢写下来的瞬间。</p>
-				<div class="actions"><a class="button primary" href="/blog">阅读文章 <span>→</span></a><a class="button ghost" href="/about">认识清月</a></div>
+				<div class="actions"><a class="button primary" href={`${base}blog`}>阅读文章 <span>→</span></a><a class="button ghost" href={`${base}about`}>认识清月</a></div>
 			</section>
 
 			<section class="latest" aria-labelledby="latest-title">
-				<div class="section-heading"><div><p class="eyebrow">FROM THE JOURNAL</p><h2 id="latest-title">最近写了什么</h2></div><a href="/blog">查看全部 →</a></div>
+				<div class="section-heading"><div><p class="eyebrow">FROM THE JOURNAL</p><h2 id="latest-title">最近写了什么</h2></div><a href={`${base}blog`}>查看全部 →</a></div>
 				<div class="post-grid">
-					{posts.map((post) => <a class="post-card" href={`/blog/${post.id}/`}><p class="date"><FormattedDate date={post.data.pubDate} /></p><h3>{post.data.title}</h3><p class="description">{post.data.description}</p><span class="read-more">继续阅读 →</span></a>)}
+					{posts.map((post) => <a class="post-card" href={`${base}blog/${post.id}/`}><p class="date"><FormattedDate date={post.data.pubDate} /></p><h3>{post.data.title}</h3><p class="description">{post.data.description}</p><span class="read-more">继续阅读 →</span></a>)}
 				</div>
 			</section>
 		</main>

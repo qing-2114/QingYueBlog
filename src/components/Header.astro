@@ -1,11 +1,12 @@
 ---
 import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
+const base = import.meta.env.BASE_URL;
 ---
 
 <header class="site-header">
 	<nav class="nav-shell" aria-label="主导航">
-		<a class="brand" href="/" aria-label="返回清月首页">{SITE_TITLE}</a>
+		<a class="brand" href={base} aria-label="返回清月首页">{SITE_TITLE}</a>
 		<div class="internal-links">
 			<HeaderLink href="/">首页</HeaderLink>
 			<HeaderLink href="/blog">文章</HeaderLink>

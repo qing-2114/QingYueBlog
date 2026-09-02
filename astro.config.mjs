@@ -6,7 +6,8 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://qing-2114.github.io',
+	site: 'https://qing-2114.github.io/QingYueBlog',
+	base: '/QingYueBlog',
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{
