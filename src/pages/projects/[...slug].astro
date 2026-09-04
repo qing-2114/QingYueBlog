@@ -1,0 +1,59 @@
+---
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import ProjectLab from '../../components/ProjectLab.astro';
+
+export async function getStaticPaths() {
+	const projects = await getCollection('projects');
+	return projects.map((project) => ({ params: { slug: project.id }, props: project }));
+}
+
+type Props = CollectionEntry<'projects'>;
+const project = Astro.props;
+const { Content } = await render(project);
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head><BaseHead title={`${project.data.title} · 项目`} description={project.data.description} /></head>
+	<body>
+		<Header />
+		<main>
+			<div class="project-shell">
+				<a class="back-link" href={`${base}projects/`}>← 返回项目</a>
+				<header class="project-header">
+					<div><p class="eyebrow">ACTIVE PROJECT</p><h1>{project.data.title}</h1><p class="summary">{project.data.description}</p></div>
+					<div class="project-meta"><span class="status"><i aria-hidden="true"></i>{project.data.statusLabel}</span><span>开始于 {project.data.startDate.toLocaleDateString('zh-CN')}</span>{project.data.updatedDate && <span>更新于 {project.data.updatedDate.toLocaleDateString('zh-CN')}</span>}</div>
+				</header>
+				<div class="tag-row">{project.data.tags.map((tag) => <span>#{tag}</span>)}</div>
+				<ProjectLab />
+				<article class="project-prose"><Content /></article>
+				{project.data.source && <p class="source-note">学习来源：<a href={project.data.source} rel="noreferrer">{project.data.source}</a></p>}
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main { padding-top: 3.2rem; }
+	.project-shell { width: min(900px, 100%); margin: auto; }
+	.back-link { display: inline-block; margin-bottom: 2.1rem; font-size: .82rem; text-decoration: none; }
+	.project-header { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line); }
+	.eyebrow { margin: 0 0 .5rem; color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
+	.project-header h1 { margin: 0; font-size: clamp(2.4rem, 6vw, 4.2rem); }
+	.summary { max-width: 38rem; margin: .9rem 0 0; color: var(--muted); font-size: 1rem; }
+	.project-meta { display: grid; flex: 0 0 auto; gap: .35rem; color: var(--muted); font-size: .76rem; text-align: right; }
+	.status { display: inline-flex; align-items: center; justify-content: end; gap: .4rem; color: var(--accent-dark); font-weight: 700; }
+	.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+	.tag-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1rem; }
+	.tag-row span { padding: .18rem .48rem; color: var(--muted); background: rgba(91,163,224,.1); border-radius: 999px; font-size: .72rem; }
+	.project-prose { width: min(720px, 100%); margin: 0 auto; }
+	.project-prose :global(h2) { margin-top: 2.4rem; font-size: 1.55rem; }
+	.project-prose :global(h3) { margin-top: 1.7rem; font-size: 1.15rem; }
+	.source-note { margin: 2rem 0 0; color: var(--muted); font-size: .8rem; }
+	@media (max-width: 700px) { .project-header { display: block; } .project-meta { justify-items: start; margin-top: 1.2rem; text-align: left; } .status { justify-content: start; } }
+</style>

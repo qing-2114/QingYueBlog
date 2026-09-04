@@ -1,0 +1,105 @@
+---
+const records = [
+	{ id: 'input', title: '请求进入', detail: '用户输入被包装成当前会话的一轮消息。', files: 'agent.py' },
+	{ id: 'memory', title: '检索 V0 记忆', detail: '按 user_id 和关键词取回偏好，仅作为上下文参考。', files: 'memory_store.py' },
+	{ id: 'prompt', title: '构造 messages', detail: '系统提示词、记忆上下文与用户输入汇合。', files: 'prompts/travel_agent.md' },
+	{ id: 'model', title: '模型决策', detail: '读取 Action，决定是否调用工具或返回 Finish。', files: 'agent.py · llm_client.py' },
+	{ id: 'tools', title: '工具执行', detail: '天气、景点搜索和本地模拟票务保持可测试边界。', files: 'tools.py · test_ticket_tools.py' },
+	{ id: 'session', title: '会话更新', detail: '接受/拒绝反馈持续写入 SessionState。', files: 'session_agent.py' },
+	{ id: 'output', title: '回复完成', detail: '连续拒绝 3 次时只触发一次策略反思。', files: 'test_session_agent.py' },
+];
+
+---
+
+<section class="project-lab" aria-labelledby="lab-title">
+	<div class="lab-heading">
+		<div><p class="eyebrow">1.3-EXPERIMENT / LIVE TRACE</p><h2 id="lab-title">旅行 Agent 实验链路</h2></div>
+		<div class="run-state"><span class="run-dot" aria-hidden="true"></span><span id="run-label">循环演示中</span></div>
+	</div>
+
+	<div class="trace-shell">
+		<svg class="trace-map" viewBox="0 0 900 330" role="img" aria-labelledby="trace-title trace-desc">
+			<title id="trace-title">旅行 Agent 从输入到回复的实验链路</title>
+			<desc id="trace-desc">动画粒子沿着用户输入、记忆、提示词、模型、工具、会话和回复节点移动。</desc>
+			<defs>
+				<pattern id="trace-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(138,180,224,.18)" stroke-width="1" /></pattern>
+				<filter id="trace-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+				<linearGradient id="trace-path" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#5ba3e0" stop-opacity=".25" /><stop offset=".5" stop-color="#287fc3" stop-opacity=".9" /><stop offset="1" stop-color="#3c9b76" stop-opacity=".35" /></linearGradient>
+				<path id="route-a" d="M 120 165 C 180 165, 190 92, 270 92 S 360 165, 430 165 S 500 92, 585 92 S 680 165, 775 165" />
+				<path id="route-b" d="M 120 165 C 180 165, 190 238, 270 238 S 360 165, 430 165 S 500 238, 585 238 S 680 165, 775 165" />
+			</defs>
+			<rect width="900" height="330" fill="url(#trace-grid)" opacity=".6" />
+			<use href="#route-a" fill="none" stroke="url(#trace-path)" stroke-width="2" stroke-dasharray="3 8" />
+			<use href="#route-b" fill="none" stroke="url(#trace-path)" stroke-width="2" stroke-dasharray="3 8" />
+			<g class="trace-packets" filter="url(#trace-glow)" aria-hidden="true"><circle r="5" fill="#287fc3"><animateMotion dur="5.8s" repeatCount="indefinite"><mpath href="#route-a" /></animateMotion></circle><circle r="4" fill="#3c9b76"><animateMotion dur="5.8s" begin="2.9s" repeatCount="indefinite"><mpath href="#route-b" /></animateMotion></circle></g>
+			<g class="diagram-node" data-node="input" tabindex="0" role="button" aria-label="请求进入"><circle cx="120" cy="165" r="31" /><text x="120" y="161">01</text><text x="120" y="179" class="node-label">输入</text></g>
+			<g class="diagram-node" data-node="memory" tabindex="0" role="button" aria-label="检索 V0 记忆"><circle cx="270" cy="92" r="31" /><text x="270" y="88">02</text><text x="270" y="106" class="node-label">记忆</text></g>
+			<g class="diagram-node" data-node="prompt" tabindex="0" role="button" aria-label="构造 messages"><circle cx="270" cy="238" r="31" /><text x="270" y="234">03</text><text x="270" y="252" class="node-label">提示词</text></g>
+			<g class="diagram-node active" data-node="model" tabindex="0" role="button" aria-label="模型决策"><circle cx="430" cy="165" r="37" /><text x="430" y="161">04</text><text x="430" y="181" class="node-label">模型</text></g>
+			<g class="diagram-node" data-node="tools" tabindex="0" role="button" aria-label="工具执行"><circle cx="585" cy="92" r="31" /><text x="585" y="88">05</text><text x="585" y="106" class="node-label">工具</text></g>
+			<g class="diagram-node" data-node="session" tabindex="0" role="button" aria-label="会话更新"><circle cx="585" cy="238" r="31" /><text x="585" y="234">06</text><text x="585" y="252" class="node-label">会话</text></g>
+			<g class="diagram-node" data-node="output" tabindex="0" role="button" aria-label="回复完成"><circle cx="775" cy="165" r="31" /><text x="775" y="161">07</text><text x="775" y="179" class="node-label">回复</text></g>
+		</svg>
+		<div class="trace-detail" aria-live="polite"><span class="detail-index" id="detail-index">04</span><div><strong id="detail-title">模型决策</strong><p id="detail-copy">读取 Action，决定是否调用工具或返回 Finish。</p></div><code id="detail-files">agent.py · llm_client.py</code></div>
+	</div>
+
+</section>
+
+<script>
+	const records = [
+		{ id: 'input', index: '01', title: '请求进入', detail: '用户输入被包装成当前会话的一轮消息。', files: 'agent.py' },
+		{ id: 'memory', index: '02', title: '检索 V0 记忆', detail: '按 user_id 和关键词取回偏好，仅作为上下文参考。', files: 'memory_store.py' },
+		{ id: 'prompt', index: '03', title: '构造 messages', detail: '系统提示词、记忆上下文与用户输入汇合。', files: 'prompts/travel_agent.md' },
+		{ id: 'model', index: '04', title: '模型决策', detail: '读取 Action，决定是否调用工具或返回 Finish。', files: 'agent.py · llm_client.py' },
+		{ id: 'tools', index: '05', title: '工具执行', detail: '天气、景点搜索和本地模拟票务保持可测试边界。', files: 'tools.py · test_ticket_tools.py' },
+		{ id: 'session', index: '06', title: '会话更新', detail: '接受/拒绝反馈持续写入 SessionState。', files: 'session_agent.py' },
+		{ id: 'output', index: '07', title: '回复完成', detail: '连续拒绝 3 次时只触发一次策略反思。', files: 'test_session_agent.py' },
+	];
+	const nodes = [...document.querySelectorAll('.diagram-node')];
+	const detailIndex = document.querySelector('#detail-index');
+	const detailTitle = document.querySelector('#detail-title');
+	const detailCopy = document.querySelector('#detail-copy');
+	const detailFiles = document.querySelector('#detail-files');
+	const runLabel = document.querySelector('#run-label');
+	let current = 3;
+	const selectNode = (id, announce = true) => {
+		const record = records.find((item) => item.id === id);
+		current = records.indexOf(record);
+		nodes.forEach((node) => node.classList.toggle('active', node.dataset.node === id));
+		detailIndex.textContent = record.index;
+		detailTitle.textContent = record.title;
+		detailCopy.textContent = record.detail;
+		detailFiles.textContent = record.files;
+		if (announce) runLabel.textContent = record.title;
+	};
+	nodes.forEach((node) => { node.addEventListener('click', () => selectNode(node.dataset.node)); node.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectNode(node.dataset.node); } }); });
+	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) window.setInterval(() => selectNode(records[(current + 1) % records.length].id, false), 3600);
+</script>
+
+<style>
+	.project-lab { margin: 2.4rem 0; padding: 1.35rem; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.52); box-shadow: 0 16px 38px rgba(38,111,170,.08); }
+	.lab-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
+	.eyebrow { margin: 0 0 .3rem; color: var(--accent); font-size: .66rem; font-weight: 700; letter-spacing: .16em; }
+	.lab-heading h2 { margin: 0; font-size: 1.55rem; }
+	.run-state { display: inline-flex; align-items: center; gap: .4rem; color: var(--muted); font-size: .7rem; }
+	.run-dot { width: 7px; height: 7px; border-radius: 50%; background: #3c9b76; box-shadow: 0 0 0 4px rgba(60,155,118,.14); animation: blink 1.8s ease-in-out infinite; }
+	.trace-shell { overflow: hidden; border: 1px solid rgba(138,180,224,.3); border-radius: 10px; background: rgba(245,250,255,.72); }
+	.trace-map { display: block; width: 100%; min-height: 270px; }
+	.diagram-node { cursor: pointer; outline: none; }
+	.diagram-node circle { fill: rgba(255,255,255,.9); stroke: rgba(138,180,224,.65); stroke-width: 1.5; transition: fill .3s, stroke .3s, r .3s; }
+	.diagram-node text { fill: var(--muted); font-family: var(--font-atkinson); font-size: 12px; text-anchor: middle; pointer-events: none; }
+	.diagram-node .node-label { fill: var(--ink); font-size: 13px; font-weight: 700; }
+	.diagram-node.active circle, .diagram-node:focus circle { fill: rgba(91,163,224,.16); stroke: var(--accent); stroke-width: 2.5; }
+	.diagram-node.active circle { animation: focus-ring 2s ease-in-out infinite; }
+	.trace-detail { display: flex; align-items: center; gap: .7rem; padding: .7rem .9rem; border-top: 1px solid var(--line); background: rgba(255,255,255,.55); }
+	.detail-index { color: var(--accent); font-size: .7rem; font-weight: 700; }
+	.trace-detail div { min-width: 0; flex: 1; }
+	.trace-detail strong { font-size: .82rem; }
+	.trace-detail p { overflow: hidden; margin: .12rem 0 0; color: var(--muted); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+	.trace-detail code { color: var(--accent-dark); font-size: .68rem; white-space: nowrap; }
+	@keyframes travel { from { left: 0; } to { left: 100%; } }
+	@keyframes blink { 50% { opacity: .35; } }
+	@keyframes focus-ring { 50% { filter: drop-shadow(0 0 7px rgba(40,127,195,.45)); } }
+	@media (prefers-reduced-motion: reduce) { .trace-packets, .diagram-node.active circle, .run-dot { animation: none; } }
+	@media (max-width: 700px) { .trace-map { min-height: 230px; } .trace-detail { align-items: start; flex-wrap: wrap; } .trace-detail code { width: 100%; margin-left: 1.4rem; } }
+</style>
