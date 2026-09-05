@@ -23,9 +23,9 @@ const buildYearGraph = (year: number) => {
 	const levels = Array.from({ length: 53 }, (_, week) => Array.from({ length: 7 }, (_, day) => {
 		const date = new Date(firstDay);
 		date.setDate(firstDay.getDate() + week * 7 + day);
-		if (date.getFullYear() !== year) return { level: 0, inYear: false, date: dateKey(date) };
+		if (date.getFullYear() !== year) return { level: 0, count: 0, inYear: false, date: dateKey(date) };
 		const count = commitDates.get(dateKey(date)) ?? 0;
-		return { level: count === 0 ? 0 : count === 1 ? 2 : count === 2 ? 3 : 4, inYear: true, date: dateKey(date) };
+		return { level: count === 0 ? 0 : count === 1 ? 2 : count === 2 ? 3 : 4, count, inYear: true, date: dateKey(date) };
 	}));
 	const count = [...commitDates.entries()].filter(([date]) => date.startsWith(`${year}-`)).reduce((sum, [, value]) => sum + value, 0);
 	const months = Array.from({ length: 12 }, (_, index) => monthFormatter.format(new Date(year, index, 1)));
@@ -64,7 +64,7 @@ const yearGraphs = years.map(buildYearGraph);
 						<div class="graph-wrap">
 							{yearGraphs.map((graph, index) => <div class:list={["year-panel", { active: index === 0 }]} data-year={graph.year} data-count={graph.count}>
 								<div class="month-labels">{graph.months.map((month) => <span>{month}</span>)}</div>
-								<div class="graph-row"><div class="day-labels" aria-hidden="true"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div><div class="contribution-grid" role="img" aria-label={`${graph.year} 年每天的博客提交热力图`}>{graph.levels.map((week) => <div class="week">{week.map((cell) => <span class:list={[`level-${cell.level}`, { outside: !cell.inYear }]} title={cell.inYear ? `${cell.date}: ${cell.level} contributions` : undefined}></span>)}</div>)}</div></div>
+								<div class="graph-row"><div class="day-labels" aria-hidden="true"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div><div class="contribution-grid" role="img" aria-label={`${graph.year} 年每天的博客提交热力图`}>{graph.levels.map((week) => <div class="week">{week.map((cell) => <span class:list={[`level-${cell.level}`, { outside: !cell.inYear }]} title={cell.inYear ? `${cell.date}: ${cell.count} contributions` : undefined}></span>)}</div>)}</div></div>
 							</div>)}
 							<div class="graph-footer"><span class="legend">Less <i class="level-0"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i> More</span></div>
 						</div>
