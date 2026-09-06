@@ -1,73 +1,43 @@
-# Design QA — 旅行 Agent 执行链路
-
-**Source visual truth**
-
-- `C:\Users\asus\AppData\Local\Temp\codex-clipboard-8599a355-acf9-4ffc-8fa2-25d9451cf0ec.png`
-- Source pixels: 997 × 546 at 1× density.
-- Compared component crop: x=43, y=25, 900 × 500; fitted without distortion into a 900 × 614 comparison pane.
-
-**Rendered implementation**
-
-- Desktop screenshot: `C:\Users\asus\.codex\visualizations\2026\09\04\01a06aba-fb4d-71b1-aae4-f370f4b889ab\agent-loop-page-final.png`
-- Desktop screenshot pixels / CSS viewport: 1200 × 1100 at deviceScaleFactor 1.
-- Compared component crop: x=150, y=446, 900 × 614.
-- Mobile screenshot: `C:\Users\asus\.codex\visualizations\2026\09\04\01a06aba-fb4d-71b1-aae4-f370f4b889ab\agent-loop-mobile-v3.png`
-- Mobile screenshot pixels / CSS viewport: 430 × 1100 at deviceScaleFactor 1.
-- Combined comparison: `C:\Users\asus\.codex\visualizations\2026\09\04\01a06aba-fb4d-71b1-aae4-f370f4b889ab\agent-loop-comparison-final.png`
-- State: default node 01 selected, reduced motion enabled for equal-state comparison.
-
-**Full-view comparison evidence**
-
-- The revised component preserves the source panel width, pale blue grid, light border, rounded shell, heading hierarchy, status treatment, animated trace, and bottom detail panel.
-- The intentionally changed information architecture replaces the inaccurate two-branch diamond with a main turn chain, a model/tool/Observation loop, a cross-turn session loop, one memory retrieval per turn, and a conditional three-rejection reflection branch.
-- Desktop layout remains balanced at the project page's 900 px content width. The denser graph remains readable because branch types use separate line colors and labels.
-
-**Focused region comparison evidence**
-
-- Graph region: node titles, arrow directions, conditional labels, and loop returns were inspected at the 900 px component crop.
-- Detail region: node 01 copy and file badge match the active node in the equal-state capture.
-- Mobile region: the title and status stack vertically; the graph remains inside its own horizontal scroller without increasing document width.
-
-**Required fidelity surfaces**
-
-- Fonts and typography: existing Atkinson / Chinese system fallback stack, weights, hierarchy, and small trace labels are preserved; no clipping in the desktop target.
-- Spacing and layout rhythm: outer padding, 14 px panel radius, graph-to-detail split, and metadata rhythm remain consistent with the source. Mobile title spacing was corrected in the second QA iteration.
-- Colors and visual tokens: existing `--accent`, `--ink`, `--muted`, and `--line` tokens remain the base; indigo and green are limited to semantic loop types.
-- Image quality and asset fidelity: the diagram is native vector UI and remains sharp at 1× density. The source contains no raster illustration, logo, or product image requiring replacement.
-- Copy and content: labels and descriptions were checked against `F:\my-hello-agent\1.3-experiment\agent.py`, `session_agent.py`, `memory_store.py`, and `tools.py`.
-
-**Interaction and runtime checks**
-
-- Clicking the `tools` node changed the active node from `model` to `tools`, changed the detail title to `执行注册工具`, and changed the file badge to `tools.py · available_tools`.
-- Automatic node advance was observed in the browser-rendered capture.
-- Browser console/runtime errors observed: 0.
-- Astro production build: passed, 11 pages generated.
-- Agent offline tests: passed, 15 tests.
-
-**Findings**
-
-- No actionable P0, P1, or P2 findings remain.
-
-**Comparison history**
-
-1. Initial implementation: P2 mobile heading issue — the no-wrap run status was clipped beside the long title.
-2. Fix: changed the mobile heading to a stacked layout and constrained the diagram to a component-owned horizontal scroller.
-3. Post-fix evidence: `agent-loop-mobile-v3.png` shows the full component title/status and document width remains within the viewport; the wide graph is intentionally scrollable.
-
-**Open Questions**
-
-- None.
-
-**Implementation Checklist**
-
-- [x] Preserve the source visual language.
-- [x] Represent the real Action / Tool / Observation loop.
-- [x] Represent memory, session state, and conditional reflection accurately.
-- [x] Keep mouse and keyboard node selection.
-- [x] Verify desktop, mobile, reduced motion, build, tests, and console state.
-
-**Follow-up Polish**
-
-- No P3 item is required for this revision.
+# Design QA — Plan-and-Solve / Reflection · 2026-09-06
 
 final result: passed
+
+## Visual target and evidence
+
+- Source: C:/Users/asus/AppData/Local/Temp/codex-clipboard-ca8d543a-5abd-42ce-a3a0-1f46f9e62246.png (984 × 621); companion travel diagram supplied in the same request.
+- Implementation: http://localhost:4321/QingYueBlog/projects/my-hello-agent/
+- Evidence directory: C:/Users/asus/.codex/visualizations/2026/09/06/01a07598-b752-7763-8e73-dcc8660d57c7/
+- Desktop: plan-solve-desktop.png and reflection-desktop.png, 900 × 759 component crops, viewport 1200 × 1000 CSS pixels, deviceScaleFactor 1.
+- Mobile: plan-solve-mobile.png and reflection-mobile.png, viewport 390 × 900 CSS pixels, deviceScaleFactor 1; component width 358 px.
+- Source panel width approximately 900 px; compare the panel region at native density, excluding surrounding page margins. Source shows ReAct node 02; new components intentionally show their own node 01 in the desktop captures.
+- Source and both implementation images were opened together in one comparison tool response. Revised clean captures were compared again with the source. Mobile captures omit the sticky site header and development toolbar only during element screenshots, so surrounding UI does not obscure the component.
+
+## Required fidelity surfaces
+
+- Typography: preserves the existing Atkinson / Chinese fallback stack, blue eyebrow, bold title, compact labels and detail text. No clipped headings or file references in inspected captures.
+- Spacing: preserves 900 px cards, 14 px corners, pale shell and bottom detail strip. New graph topology uses four columns and two rows, with more graph height than the reference to separate branches. Added playback control and one short dated evidence line are intentional.
+- Colors: existing ink, muted, accent and line tokens; blue main flow, indigo dashed iteration, green dotted exit branches.
+- Assets: no raster imagery or icons in the target. These are interactive vector flow diagrams, extending the existing source components as requested; lines, nodes and text remain sharp.
+- Content: mapped to current Plan-and-Solve planner/executor and Reflection agent/memory. Plan-and-Solve is marked implemented, without claiming a real run. Reflection's three rounds, seven responses and prime count refer to saved experimental evidence. Animation is explicitly a flow demonstration, not live execution.
+
+## Runtime and interactions
+
+- Browser-rendered evidence captured using locally installed Chromium and Playwright library; bundled in-app Browser skill files were absent.
+- flow-checks.json records successful automatic node advance on both components, running SVG clocks, click-to-pause, correct detail updates and Enter-key selection.
+- Reduced-motion preference switches both components to paused state.
+- Browser page errors: 0.
+- Mobile document width 390 equals viewport width 390; diagram scroll width 760 stays within its own 322 px scroller.
+- Astro production build passed: 12 pages. git diff --check passed.
+
+## Findings and comparison history
+
+No actionable P0/P1/P2 design findings. Initial capture artifacts (development toolbar and sticky header overlay) were removed from capture only; clean screenshots were re-opened alongside the source. No visual component changes were needed after comparison. Wide graphs intentionally scroll on mobile, following the existing reference components.
+
+Focused node labels, route directions, detail strip and mobile headings were legible in the opened full-resolution component images, so no additional magnified region was required.
+
+## Implementation checklist
+
+- [x] Replace long progress prose with animated cards.
+- [x] Preserve existing travel/ReAct components and tutorial source.
+- [x] Verify desktop/mobile, click, keyboard, playback and reduced motion.
+- [x] Build and inspect patch scope before publishing.

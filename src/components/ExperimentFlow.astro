@@ -1,0 +1,129 @@
+---
+import type { ExperimentFlow } from '../data/experiment-flows';
+interface Props { flow: ExperimentFlow }
+const { flow } = Astro.props;
+const colors = { main: '#287fc3', loop: '#5b7fba', finish: '#3c9b76' };
+const first = flow.nodes[0];
+---
+<section class="experiment-flow" id={flow.id} aria-labelledby={`${flow.id}-title`} data-sequence={JSON.stringify(flow.sequence)}>
+  <div class="lab-heading">
+    <div><p class="eyebrow">{flow.eyebrow}</p><h2 id={`${flow.id}-title`}>{flow.title}</h2></div>
+    <span class="run-state">{flow.status}</span>
+  </div>
+  <p class="lab-summary">{flow.summary}</p>
+  <div class="trace-toolbar">
+    <div class="trace-legend"><span class="main">主执行链</span><span class="loop">迭代回环</span><span class="finish">结束分支</span></div>
+    <button class="play-toggle" type="button" aria-pressed="true">暂停演示</button>
+  </div>
+  <div class="trace-shell">
+    <div class="trace-scroll" tabindex="0" role="region" aria-label={`${flow.title}，可横向滚动`}>
+      <svg class="trace-map" viewBox="0 0 800 385" role="group" aria-labelledby={`${flow.id}-svg-title`}>
+        <title id={`${flow.id}-svg-title`}>{flow.title}，可点击或用键盘选择节点</title>
+        <defs>
+          <pattern id={`${flow.id}-grid`} width="28" height="28" patternUnits="userSpaceOnUse"><path d="M 28 0 H 0 V 28" fill="none" stroke="rgba(138,180,224,.17)" stroke-width="1" /></pattern>
+          {Object.entries(colors).map(([kind, color]) => <marker id={`${flow.id}-arrow-${kind}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill={color} /></marker>)}
+        </defs>
+        <rect width="800" height="385" fill={`url(#${flow.id}-grid)`} />
+        <text x="38" y="24" class="lane-title">FLOW / 执行流程演示</text>
+        {flow.routes.map(route => <g>
+          <path id={`${flow.id}-${route.id}`} data-from={route.from} data-to={route.to} d={route.d} class={`flow-route ${route.kind}`} stroke={colors[route.kind]} marker-end={`url(#${flow.id}-arrow-${route.kind})`} />
+          {route.label && <text x={route.x} y={route.y} class="route-label" fill={colors[route.kind]}>{route.label}</text>}
+          <circle class="packet" r="3" fill={colors[route.kind]}><animateMotion dur="3.2s" repeatCount="indefinite"><mpath href={`#${flow.id}-${route.id}`} /></animateMotion></circle>
+        </g>)}
+        {flow.nodes.map((node, i) => <g class:list={['flow-node', node.kind, { active: i === 0 }]} data-node={node.id} data-title={node.label} data-detail={node.detail} data-file={node.file} data-index={String(i + 1).padStart(2, '0')} tabindex="0" role="button" aria-pressed={i === 0 ? 'true' : 'false'} aria-label={node.label}>
+          <rect x={node.x} y={node.y} width="140" height="64" rx="14" />
+          <text x={node.x + 14} y={node.y + 20} class="node-index">{String(i + 1).padStart(2, '0')} · {node.tag}</text>
+          <text x={node.x + 70} y={node.y + 43} class="node-label">{node.label}</text>
+        </g>)}
+      </svg>
+    </div>
+    <div class="trace-detail" aria-live="off"><span class="detail-index">01</span><div><strong class="detail-title">{first.label}</strong><p class="detail-copy">{first.detail}</p></div><code class="detail-file">{first.file}</code></div>
+  </div>
+  <p class="trace-note"><strong>读图方式：</strong>{flow.note}</p>
+  <p class="experiment-record">{flow.record}</p>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.experiment-flow').forEach((section) => {
+    const sequence: string[] = JSON.parse(section.dataset.sequence ?? '[]');
+    const nodes = [...section.querySelectorAll<SVGGElement>('.flow-node')];
+    const svg = section.querySelector<SVGSVGElement>('svg')!;
+    const toggle = section.querySelector<HTMLButtonElement>('.play-toggle')!;
+    const detail = section.querySelector<HTMLElement>('.trace-detail')!;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let playing = !reduced.matches;
+    let visible = false;
+    let step = 0;
+    const syncPlayback = () => {
+      toggle.textContent = playing ? '暂停演示' : '播放演示';
+      toggle.setAttribute('aria-pressed', String(playing));
+      section.classList.toggle('is-paused', !playing);
+      if (playing && visible && !document.hidden) svg.unpauseAnimations(); else svg.pauseAnimations();
+      detail.setAttribute('aria-live', playing ? 'off' : 'polite');
+    };
+    const select = (id: string, manual = false) => {
+      const node = nodes.find(n => n.dataset.node === id);
+      if (!node) return;
+      nodes.forEach(n => { n.classList.toggle('active', n === node); n.setAttribute('aria-pressed', String(n === node)); });
+      for (const [selector, key] of [['.detail-index', 'index'], ['.detail-title', 'title'], ['.detail-copy', 'detail'], ['.detail-file', 'file']]) {
+        section.querySelector(selector)!.textContent = node.dataset[key] ?? '';
+      }
+      if (manual) { step = Math.max(0, sequence.indexOf(id)); playing = false; syncPlayback(); }
+    };
+    nodes.forEach(node => {
+      node.addEventListener('click', () => select(node.dataset.node!, true));
+      node.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(node.dataset.node!, true); } });
+    });
+    toggle.addEventListener('click', () => { playing = !playing; syncPlayback(); });
+    new IntersectionObserver(entries => { visible = entries[0].isIntersecting; syncPlayback(); }).observe(section);
+    document.addEventListener('visibilitychange', syncPlayback);
+    reduced.addEventListener('change', () => { playing = !reduced.matches; syncPlayback(); });
+    window.setInterval(() => { if (playing && visible && !document.hidden) { step = (step + 1) % sequence.length; select(sequence[step]); } }, 2600);
+    syncPlayback();
+  });
+</script>
+
+<style>
+  .experiment-flow { width:100%; min-width:0; margin:2.4rem 0; padding:1.35rem; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.52); box-shadow:0 16px 38px rgba(38,111,170,.08); }
+  .lab-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.65rem; }
+  .eyebrow { margin:0 0 .3rem; color:var(--accent); font-size:.66rem; font-weight:700; letter-spacing:.16em; }
+  .lab-heading h2 { margin:0; font-size:1.55rem; }
+  .run-state { color:var(--muted); font-size:.7rem; white-space:nowrap; }
+  .lab-summary { margin:0 0 .9rem; color:var(--muted); font-size:.8rem; line-height:1.65; }
+  .trace-toolbar { display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin-bottom:.7rem; }
+  .trace-legend { display:flex; flex-wrap:wrap; gap:.55rem 1rem; color:var(--muted); font-size:.68rem; }
+  .trace-legend span { display:inline-flex; align-items:center; gap:.38rem; }
+  .trace-legend span::before { content:''; width:20px; border-top:2px solid #287fc3; }
+  .trace-legend .loop::before { border-color:#5b7fba; border-top-style:dashed; }
+  .trace-legend .finish::before { border-color:#3c9b76; border-top-style:dotted; }
+  .play-toggle { border:1px solid var(--line); border-radius:6px; background:rgba(255,255,255,.8); color:var(--accent-dark); font:inherit; font-size:.7rem; padding:.3rem .6rem; cursor:pointer; white-space:nowrap; min-height:32px; }
+  .play-toggle:hover { background:rgba(91,163,224,.12); }
+  .play-toggle:focus-visible, .trace-scroll:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+  .trace-shell { overflow:hidden; border:1px solid rgba(138,180,224,.3); border-radius:10px; background:rgba(245,250,255,.72); }
+  .trace-scroll { width:100%; overflow-x:auto; overscroll-behavior-inline:contain; }
+  .trace-map { display:block; width:100%; min-width:760px; }
+  .lane-title { fill:#287fc3; font-size:9px; font-weight:700; letter-spacing:.16em; }
+  .flow-route { fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .flow-route.loop { stroke-dasharray:4 6; }
+  .flow-route.finish { stroke-dasharray:2 6; }
+  .route-label { font-size:10px; text-anchor:middle; }
+  .flow-node { cursor:pointer; outline:none; }
+  .flow-node rect { fill:rgba(255,255,255,.94); stroke:rgba(138,180,224,.8); stroke-width:1.4; transition:fill .25s,stroke .25s; }
+  .flow-node.finish rect { stroke:rgba(60,155,118,.7); }
+  .flow-node text { font-family:var(--font-atkinson); pointer-events:none; }
+  .node-index { fill:var(--muted); font-size:9px; font-weight:700; letter-spacing:.06em; }
+  .node-label { fill:var(--ink); font-size:13px; font-weight:700; text-anchor:middle; }
+  .flow-node:hover rect { fill:rgba(91,163,224,.1); }
+  .flow-node.active rect, .flow-node:focus-visible rect { fill:rgba(91,163,224,.16); stroke:var(--accent); stroke-width:2.4; filter:drop-shadow(0 0 6px rgba(40,127,195,.3)); }
+  .trace-detail { display:flex; align-items:center; gap:.7rem; min-height:86px; padding:.7rem .9rem; border-top:1px solid var(--line); background:rgba(255,255,255,.62); }
+  .detail-index { color:var(--accent); font-size:.7rem; font-weight:700; }
+  .trace-detail div { min-width:0; flex:1; }
+  .detail-title { font-size:.82rem; }
+  .detail-copy { margin:.12rem 0 0; color:var(--muted); font-size:.72rem; line-height:1.5; }
+  .detail-file { max-width:38%; overflow-wrap:anywhere; color:var(--accent-dark); font-size:.65rem; }
+  .trace-note, .experiment-record { margin:.75rem .15rem 0; color:var(--muted); font-size:.72rem; line-height:1.65; }
+  .trace-note strong { color:var(--ink); }
+  .experiment-record { padding-top:.65rem; border-top:1px solid var(--line); }
+  @media(prefers-reduced-motion:reduce) { .packet { visibility:hidden; } .flow-node rect { transition:none; } }
+  @media(max-width:700px) { .experiment-flow { padding:1rem; } .lab-heading { display:block; } .lab-heading h2 { font-size:1.3rem; } .run-state { display:block; margin-top:.5rem; } .trace-toolbar { align-items:flex-start; } .trace-legend { gap:.4rem .6rem; } .trace-detail { align-items:flex-start; flex-wrap:wrap; min-height:122px; } .detail-file { max-width:100%; width:100%; margin-left:1.4rem; } }
+</style>
