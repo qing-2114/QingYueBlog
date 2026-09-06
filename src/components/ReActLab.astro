@@ -1,8 +1,23 @@
+---
+// Visible connectors and motion share one route; endpoints stay outside node borders.
+const routes = [
+    { id: 'react-input', d: 'M 134 182 H 170', kind: 'main', color: '#287fc3' },
+    { id: 'react-think', d: 'M 329 182 H 360', kind: 'main', color: '#287fc3' },
+    { id: 'react-parse', d: 'M 479 182 H 510', kind: 'main', color: '#287fc3' },
+    { id: 'react-finish', d: 'M 629 182 H 685', kind: 'finish', color: '#3c9b76' },
+    { id: 'react-action', d: 'M 570 218 V 234 Q 570 246 582 246 H 620 Q 632 246 632 258 V 265', kind: 'tool', color: '#5b7fba' },
+    { id: 'react-search', d: 'M 714 300 H 745', kind: 'tool', color: '#5b7fba' },
+    { id: 'react-observe', d: 'M 805 334 V 364 Q 805 380 789 380 H 461 Q 445 380 445 364 V 335', kind: 'tool', color: '#5b7fba' },
+    { id: 'react-return', d: 'M 386 300 H 366 Q 350 300 350 284 V 254 Q 350 238 334 238 H 266 Q 250 238 250 222 V 219', kind: 'tool', color: '#5b7fba' },
+];
+---
 <section class="react-lab" aria-labelledby="react-lab-title">
 	<div class="lab-heading">
 		<div><p class="eyebrow">4-EXPERIMENT / REACT AGENT</p><h2 id="react-lab-title">ReAct Agent 动态执行链路</h2></div>
 		<div class="run-state"><span class="run-dot" aria-hidden="true"></span><span id="react-run-label">单回合最多 5 步</span></div>
 	</div>
+
+	<p class="lab-summary">用网页搜索实践 Thought → Action → Observation：工具结果回到上下文，直到生成最终答案。</p>
 
 	<div class="trace-legend" aria-label="链路图图例">
 		<span><i class="legend-line main" aria-hidden="true"></i>单步主链</span>
@@ -12,39 +27,37 @@
 
 	<div class="trace-shell">
 		<div class="trace-scroll" tabindex="0" aria-label="ReAct Agent 执行链路图，可横向滚动">
-			<svg class="trace-map" viewBox="0 0 960 420" role="img" aria-labelledby="trace-title trace-desc">
-				<title id="trace-title">ReAct Agent 的 Thought、Action 和 Observation 循环</title>
-				<desc id="trace-desc">用户问题被组装为包含工具清单和历史记录的 ReAct 提示词。模型生成 Thought 和 Action，解析后可以 Finish 返回答案，或调用注册工具。工具结果作为 Observation 追加到历史，再开始下一步，最多五步。</desc>
+			<svg class="trace-map" viewBox="0 90 960 330" role="img" aria-labelledby="react-trace-title react-trace-desc">
+				<title id="react-trace-title">ReAct Agent 的 Thought、Action 和 Observation 循环</title>
+				<desc id="react-trace-desc">用户问题被组装为包含工具清单和历史记录的 ReAct 提示词。模型生成 Thought 和 Action，解析后可以 Finish 返回答案，或调用注册工具。工具结果作为 Observation 追加到历史，再开始下一步，最多五步。</desc>
 				<defs>
 					<pattern id="react-trace-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(138,180,224,.17)" stroke-width="1"></path></pattern>
 					<filter id="react-trace-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
 					<marker id="react-arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#287fc3"></path></marker>
 					<marker id="react-arrow-tool" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5b7fba"></path></marker>
 					<marker id="react-arrow-finish" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c9b76"></path></marker>
-					<path id="react-main-route" d="M 85 182 L 250 182 L 420 182 L 590 182 L 820 182"></path>
-					<path id="react-tool-route" d="M 570 214 C 570 250, 590 275, 620 300 L 750 300 C 775 360, 535 372, 445 330 C 360 80, 270 100, 250 150"></path>
 				</defs>
 
 				<rect width="960" height="420" fill="url(#react-trace-grid)" opacity=".62"></rect>
-				<text x="38" y="35" class="lane-title">TURN / 当前 ReAct 回合</text>
-				<text x="38" y="264" class="lane-title">LOOP / Action 与 Observation 回环</text>
+				<text x="38" y="120" class="lane-title">TURN / 当前 ReAct 回合</text>
+				<text x="38" y="350" class="lane-title">LOOP / Action 与 Observation 回环</text>
 
-				<path d="M 130 182 L 175 182" class="route-main"></path>
-				<path d="M 325 182 L 365 182" class="route-main"></path>
-				<path d="M 475 182 L 515 182" class="route-main"></path>
-				<path d="M 625 182 L 690 182" class="route-finish"></path>
-				<text x="655" y="166" class="route-label finish-label">Finish</text>
+                {routes.map((route) => <path id={route.id} d={route.d} class={`route-${route.kind}`} />)}
+                <text x="655" y="166" class="route-label finish-label">Finish</text>
+                <text x="635" y="234" class="route-label tool-label">Action</text>
+                <text x="730" y="284" class="route-label tool-label">调用</text>
+                <text x="630" y="405" class="route-label tool-label">Observation · 写入本轮历史</text>
+                <text x="251" y="285" class="route-label tool-label">重新构造 Prompt</text>
 
-				<path d="M 570 214 C 570 250, 590 275, 620 300" class="route-tool"></path>
-				<path d="M 710 300 L 750 300" class="route-tool"></path>
-				<path d="M 860 300 C 885 370, 535 382, 445 330" class="route-tool"></path>
-				<path d="M 445 270 C 360 74, 270 100, 250 150" class="route-tool route-return"></path>
-				<text x="595" y="253" class="route-label tool-label">Action</text>
-				<text x="730" y="284" class="route-label tool-label">调用</text>
-				<text x="650" y="368" class="route-label tool-label">Observation</text>
-				<text x="604" y="76" class="route-label tool-label">写入 history 后进入下一步</text>
-
-				<g class="trace-packets" filter="url(#react-trace-glow)" aria-hidden="true"><circle r="4.5" fill="#287fc3"><animateMotion dur="6.8s" repeatCount="indefinite"><mpath href="#react-main-route"></mpath></animateMotion></circle><circle r="4" fill="#5b7fba"><animateMotion dur="5.2s" begin="1.1s" repeatCount="indefinite"><mpath href="#react-tool-route"></mpath></animateMotion></circle></g>
+                {routes.map((route, index) => (
+                    <g class="trace-packets" aria-hidden="true">
+                        <circle r="3" fill={route.color}>
+                            <animateMotion dur="3.6s" begin={`${index * .3}s`} repeatCount="indefinite">
+                                <mpath href={`#${route.id}`} />
+                            </animateMotion>
+                        </circle>
+                    </g>
+                ))}
 
 				<g class="react-diagram-node active" data-node="input" data-index="01" data-title="接收问题" data-detail="run(question) 开始一轮任务，并在进入循环前清空本轮 history。" data-files="ReAct/agent.py · run" tabindex="0" role="button" aria-label="01 接收问题"><rect x="40" y="150" width="90" height="64" rx="14"></rect><text x="52" y="170" class="node-index">01 · INPUT</text><text x="85" y="193" class="node-label">接收问题</text></g>
 				<g class="react-diagram-node context-node" data-node="prompt" data-index="02" data-title="构造 ReAct Prompt" data-detail="把问题、工具描述和已有 Observation 一起填入提示词模板。" data-files="ReAct/agent.py · prompts.py" tabindex="0" role="button" aria-label="02 构造 ReAct Prompt"><rect x="175" y="150" width="150" height="64" rx="14"></rect><text x="189" y="170" class="node-index">02 · CONTEXT</text><text x="250" y="193" class="node-label">构造 ReAct Prompt</text></g>
@@ -104,6 +117,7 @@
 	.lab-heading h2 { margin: 0; font-size: 1.55rem; }
 	.run-state { display: inline-flex; align-items: center; gap: .4rem; color: var(--muted); font-size: .7rem; white-space: nowrap; }
 	.run-dot { width: 7px; height: 7px; border-radius: 50%; background: #3c9b76; box-shadow: 0 0 0 4px rgba(60,155,118,.14); animation: blink 1.8s ease-in-out infinite; }
+	.lab-summary { margin: 0 0 .9rem; color: var(--muted); font-size: .8rem; line-height: 1.65; }
 	.trace-legend { display: flex; flex-wrap: wrap; gap: .55rem 1rem; margin: 0 0 .7rem; color: var(--muted); font-size: .68rem; }
 	.trace-legend span { display: inline-flex; align-items: center; gap: .38rem; }
 	.legend-line { display: inline-block; width: 20px; height: 0; border-top: 2px solid; }
@@ -115,7 +129,7 @@
 	.trace-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 	.trace-map { display: block; width: 100%; min-width: 820px; }
 	.lane-title { fill: rgba(40,127,195,.72); font-family: var(--font-atkinson); font-size: 10px; font-weight: 700; letter-spacing: .16em; }
-	.route-main, .route-tool, .route-finish { fill: none; stroke-width: 1.8; }
+	.route-main, .route-tool, .route-finish { fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 	.route-main { stroke: #287fc3; marker-end: url(#react-arrow-main); }
 	.route-tool { stroke: #5b7fba; stroke-dasharray: 4 6; marker-end: url(#react-arrow-tool); }
 	.route-finish { stroke: #3c9b76; stroke-dasharray: 2 6; marker-end: url(#react-arrow-finish); }
