@@ -4,6 +4,7 @@ import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import ProjectLab from '../../components/ProjectLab.astro';
+import ReActLab from '../../components/ReActLab.astro';
 
 export async function getStaticPaths() {
 	const projects = await getCollection('projects');
@@ -31,6 +32,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 				<div class="tag-row">{project.data.tags.map((tag) => <span>#{tag}</span>)}</div>
 				<ProjectLab />
 				<article class="project-prose"><Content /></article>
+				{project.id === 'my-hello-agent' && <ReActLab />}
 				{project.data.source && <p class="source-note">学习来源：<a href={project.data.source} rel="noreferrer">{project.data.source}</a></p>}
 			</div>
 		</main>
