@@ -11,6 +11,8 @@ heroImage: '../../assets/multi-model-workflow/01-desk-reading.png'
 
 这是我已经使用过的一套流程。它需要的准备很简单：一个项目文件夹，几份 Markdown 文件，以及清楚的任务要求。下面以 Claude Fable 5.1 和 OpenAI GPT-6 Astra 为例，介绍这套方法。
 
+![桌前翻阅笔记本的技术工作者](../../assets/multi-model-workflow/01-desk-reading.png)
+
 ## 一、先讨论出方案，再请另一个模型审查
 
 我会先和 Claude Fable 5.1 讨论：这项工作要解决什么问题，有哪些限制，最终需要交付什么。等思路基本确定，再让它把结论整理成 `plan.md`。
