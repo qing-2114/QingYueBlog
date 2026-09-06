@@ -1,10 +1,36 @@
 ---
 title: 'my-hello-agent'
-description: '基于 Datawhale「Hello Agents」教程的 Agent 学习与实践项目：旅行智能体已覆盖记忆与多轮反馈，第 4 章已实现 ReAct 工具调用循环。'
+description: '基于 Datawhale「Hello Agents」教程的学习与实践：从旅行智能体、本地 Qwen 推进到 ReAct、Plan-and-Solve 与 Reflection，已完成素数代码反思实验及结果校验。'
 status: active
 statusLabel: 进行中
 startDate: '2026-08-28'
 updatedDate: '2026-09-06'
-tags: ['AI Agent', 'Python', 'ReAct', '工具调用', '记忆', '多轮会话']
+tags: ['AI Agent', 'Python', 'ReAct', 'Plan-and-Solve', 'Reflection', '本地模型']
 source: 'https://hello-agents.datawhale.cc/'
 ---
+
+## 实验进度 · 2026.09.06
+
+在旅行 Agent 的记忆、多轮反馈与模拟票务基础上，实验已推进到第四章的三种 Agent 模式。
+
+### Plan-and-Solve：先规划，再逐步求解
+
+已实现 Planner → Executor：规划器生成步骤列表，执行器依次调用模型，并把已完成步骤和结果传给后续步骤。计划解析失败时结束任务；正常执行后返回最后一步的回答。
+
+入口为 `4-experiment/Plan-and-Solve/agent.py`，默认示例是三天苹果销量题。目前按源码实现记录进度，尚未附上真实模型运行结果。
+
+### Reflection：生成 → 评审 → 优化
+
+已实现代码生成与反思循环，每次任务独立保存代码版本和评审反馈。评审单独回答“无需改进”时提前结束，否则达到迭代上限后返回最新代码。
+
+9 月 6 日的素数函数实验已保留完整运行轨迹：初次生成后完成 3 轮评审与优化，共 7 次模型响应，最终因达到轮数上限结束。
+
+- 最终实现采用只存储奇数的 `bytearray` 筛表，用切片批量标记合数。
+- 已保存的校验记录显示：`n=0…1000`、`n=10000` 与试除法结果一致，负数输入抛出 `ValueError`；`n=1000000` 与独立完整筛法结果一致。
+- 一百万以内共得到 **78,498** 个素数，最后一个为 **999,983**。这些是正确性检查结果，尚未进行性能基准测试。
+
+入口为 `4-experiment/Reflection/agent.py`。Agent 返回代码文本；本次结果另行执行校验，模型评审本身不作为正确性或最优性的证明。
+
+### 已有实验基础
+
+本地 Qwen 实验已记录 CUDA 上的贪心与采样生成；ReAct 已实现搜索工具注册、Observation 回灌、格式错误恢复和最大步数限制。下方保留 ReAct 的动态执行链路，便于与先规划、再求解及代码反思两种模式对照。
