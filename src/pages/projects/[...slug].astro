@@ -6,7 +6,7 @@ import Header from '../../components/Header.astro';
 import ProjectLab from '../../components/ProjectLab.astro';
 import ReActLab from '../../components/ReActLab.astro';
 import ExperimentFlow from '../../components/ExperimentFlow.astro';
-import { planFlow, reflectionFlow } from '../../data/experiment-flows';
+import { agentScopeFlow, autoGenFlow, camelFlow, planFlow, reflectionFlow } from '../../data/experiment-flows';
 
 export async function getStaticPaths() {
 	const projects = await getCollection('projects');
@@ -35,7 +35,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 				<ProjectLab />
 				<article class="project-prose"><Content /></article>
 				{project.id === 'my-hello-agent' && <ReActLab />}
-				{project.id === 'my-hello-agent' && <><ExperimentFlow flow={planFlow} /><ExperimentFlow flow={reflectionFlow} /></>}
+				{project.id === 'my-hello-agent' && <><ExperimentFlow flow={planFlow} /><ExperimentFlow flow={reflectionFlow} /><ExperimentFlow flow={agentScopeFlow} /><ExperimentFlow flow={autoGenFlow} /><ExperimentFlow flow={camelFlow} /></>}
 				{project.data.source && <p class="source-note">学习来源：<a href={project.data.source} rel="noreferrer">{project.data.source}</a></p>}
 			</div>
 		</main>
