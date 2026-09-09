@@ -59,6 +59,53 @@ export const reflectionFlow: ExperimentFlow = {
   sequence: ['input', 'generate', 'memory', 'review', 'check', 'refine', 'memory', 'review', 'check', 'refine', 'finish'],
 };
 
+export const langGraphFlow: ExperimentFlow = {
+  id: 'chapter-six-langgraph', title: 'LangGraph · 搜索问答状态链', eyebrow: '6-EXPERIMENT / LANGGRAPH',
+  summary: 'SearchState 在理解、Tavily 搜索与答案生成节点之间传递查询、结果和执行阶段。',
+  status: '已运行 · 真实 LLM + Tavily',
+  note: '蓝色是 StateGraph 的固定主链，绿色是完成状态；搜索失败不会跳过回答节点，而是在答案生成时切换为已有知识回退提示。',
+  record: '2026.09.09 · 真实 API 已完成 understand → search → answer 全链路；Tavily 返回结果，最终状态为 completed。离线注入客户端测试 1 项通过。',
+  nodes: [
+    { id: 'input', label: '接收问题', tag: 'INPUT', x: 20, y: 90, detail: 'run_search() 把用户问题写入 messages，并初始化查询、搜索结果、最终答案和 step。', file: 'LangGraph/graph.py · run_search' },
+    { id: 'understand', label: '理解与改写', tag: 'UNDERSTAND', x: 170, y: 90, detail: 'LLM 提取用户需求和搜索词；当前性问题会注入当天日期，并保留可解释的关键词。', file: 'LangGraph/nodes.py · understand_query_node' },
+    { id: 'search', label: 'Tavily 搜索', tag: 'SEARCH', x: 320, y: 90, detail: '使用 search_query 请求 Tavily，最多返回 5 条结果，并格式化标题、链接和摘要。异常时把 step 标记为 search_failed。', file: 'LangGraph/nodes.py · tavily_search_node' },
+    { id: 'answer', label: '生成答案', tag: 'ANSWER', x: 470, y: 90, detail: '搜索成功时要求答案引用结果链接；搜索失败时改用 LLM 已有知识回答，并明确处于回退路径。', file: 'LangGraph/nodes.py · generate_answer_node' },
+    { id: 'complete', label: '状态完成', tag: 'END', x: 620, y: 90, kind: 'finish', detail: '最终答案写入 final_answer，step 更新为 completed，随后 StateGraph 到达 END。', file: 'LangGraph/state.py · graph.py' },
+  ],
+  routes: [
+    { id: 'input-understand', from: 'input', to: 'understand', d: 'M 160 122 H 170', kind: 'main' },
+    { id: 'understand-search', from: 'understand', to: 'search', d: 'M 310 122 H 320', kind: 'main' },
+    { id: 'search-answer', from: 'search', to: 'answer', d: 'M 460 122 H 470', kind: 'main', label: '成功 / 回退', x: 465, y: 108 },
+    { id: 'answer-complete', from: 'answer', to: 'complete', d: 'M 610 122 H 620', kind: 'finish' },
+  ],
+  sequence: ['input', 'understand', 'search', 'answer', 'complete'],
+};
+
+export const chapterSevenFlow: ExperimentFlow = {
+  id: 'chapter-seven-extensions', title: '第七章 · 框架扩展与评估', eyebrow: '7-EXPERIMENT / EXTEND & EVALUATE',
+  summary: '围绕统一配置形成两条扩展线：LLM 与 ReAct 能力增强，以及 SimpleAgent 与通用 Reflection 的任务评估。',
+  status: '已运行 · 离线测试 + 真实 API',
+  note: '上支路聚焦模型接入和 ReAct 工具闭环，下支路聚焦简单工具调用与通用反思；两条路径最终汇入真实 API 验证。',
+  record: '2026.09.09 · 真实验证覆盖基础对话 2 轮、自定义 LLM 1 次、MySimpleAgent 工具闭环、MyReActAgent 计算与搜索 2 条闭环、Reflection 3 次模型调用；Reflection 离线测试 5 项通过。',
+  nodes: [
+    { id: 'config', label: '统一项目配置', tag: 'CONFIG', x: 20, y: 160, detail: '所有真实调用从项目根目录 .env 读取模型、Base URL 与 API Key；源码和输出不保存密钥。', file: 'core/config.py · .env' },
+    { id: 'llm', label: '扩展 MyLLM', tag: 'PROVIDER', x: 190, y: 70, detail: '继承 HelloAgentsLLM 增加 ModelScope 分支，其他 Provider 继续复用框架原生初始化逻辑。', file: 'agents/my_llm.py' },
+    { id: 'simple', label: '增强 Simple', tag: 'TOOLS', x: 190, y: 250, detail: '解析文本工具调用，执行注册工具并将结果回灌上下文，同时提供流式响应与工具管理接口。', file: 'agents/my_simple_agent.py' },
+    { id: 'react', label: '强化 ReAct', tag: 'SELF-CORRECT', x: 390, y: 70, detail: '增强 Thought/Action 解析；格式错误与空 Finish 会作为 Observation 回灌，并要求最终答案只依据工具观察。', file: 'agents/my_react_agent.py' },
+    { id: 'reflection', label: '通用 Reflection', tag: 'EVALUATE', x: 390, y: 250, detail: '初始回答、反思反馈与改进稿写入单次任务短期记忆；不假设输出必须是代码。', file: 'agents/my_reflection_agent.py' },
+    { id: 'verify', label: '真实链路验证', tag: 'LIVE API', x: 610, y: 160, kind: 'finish', detail: '真实模型分别完成对话、工具调用、搜索与反思流程；离线测试补充停止条件和异常分支。', file: 'demos/*.py · tests/test_my_reflection_agent.py' },
+  ],
+  routes: [
+    { id: 'config-llm', from: 'config', to: 'llm', d: 'M 160 192 H 170 Q 180 192 180 182 V 112 Q 180 102 190 102', kind: 'main', label: '模型扩展', x: 145, y: 143 },
+    { id: 'config-simple', from: 'config', to: 'simple', d: 'M 160 192 H 170 Q 180 192 180 202 V 272 Q 180 282 190 282', kind: 'loop', label: 'Agent 扩展', x: 145, y: 243 },
+    { id: 'llm-react', from: 'llm', to: 'react', d: 'M 330 102 H 390', kind: 'main' },
+    { id: 'simple-reflection', from: 'simple', to: 'reflection', d: 'M 330 282 H 390', kind: 'loop' },
+    { id: 'react-verify', from: 'react', to: 'verify', d: 'M 530 102 H 570 Q 580 102 580 112 V 182 Q 580 192 590 192 H 610', kind: 'finish', label: '工具闭环', x: 574, y: 143 },
+    { id: 'reflection-verify', from: 'reflection', to: 'verify', d: 'M 530 282 H 570 Q 580 282 580 272 V 202 Q 580 192 590 192 H 610', kind: 'finish', label: '反思轨迹', x: 574, y: 252 },
+  ],
+  sequence: ['config', 'llm', 'react', 'verify', 'config', 'simple', 'reflection', 'verify'],
+};
+
 const chapterSixBase = { eyebrow: '6-EXPERIMENT / MULTI-AGENT', status: '已实现 · 流程动画', note: '蓝色是协作主链，靛蓝是状态或工具回环，绿色是可检查产出。' };
 
 export const agentScopeFlow: ExperimentFlow = {
