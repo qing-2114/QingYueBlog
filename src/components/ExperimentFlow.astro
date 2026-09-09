@@ -11,8 +11,11 @@ const first = flow.nodes[0];
     <span class="run-state">{flow.status}</span>
   </div>
   <p class="lab-summary">{flow.summary}</p>
+  {flow.methods && <dl class="method-list" aria-label={`${flow.title} 的扩展方法`}>
+    {flow.methods.map(method => <div><dt>{method.name}</dt><dd>{method.detail}</dd></div>)}
+  </dl>}
   <div class="trace-toolbar">
-    <div class="trace-legend"><span class="main">主执行链</span><span class="loop">迭代回环</span><span class="finish">结束分支</span></div>
+    <div class="trace-legend"><span class="main">{flow.legend?.main ?? '主执行链'}</span><span class="loop">{flow.legend?.loop ?? '迭代回环'}</span><span class="finish">{flow.legend?.finish ?? '结束分支'}</span></div>
     <button class="play-toggle" type="button" aria-pressed="true">暂停演示</button>
   </div>
   <div class="trace-shell">
@@ -84,12 +87,18 @@ const first = flow.nodes[0];
 </script>
 
 <style>
-  .experiment-flow { width:100%; min-width:0; margin:2.4rem 0; padding:1.35rem; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.52); box-shadow:0 16px 38px rgba(38,111,170,.08); }
+  .experiment-flow { width:100%; min-width:0; margin:2.4rem 0; padding:1.35rem; overflow:hidden; scroll-margin-top:6rem; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.52); box-shadow:0 16px 38px rgba(38,111,170,.08); }
   .lab-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.65rem; }
   .eyebrow { margin:0 0 .3rem; color:var(--accent); font-size:.66rem; font-weight:700; letter-spacing:.16em; }
   .lab-heading h2 { margin:0; font-size:1.55rem; }
   .run-state { color:var(--muted); font-size:.7rem; white-space:nowrap; }
   .lab-summary { margin:0 0 .9rem; color:var(--muted); font-size:.8rem; line-height:1.65; }
+  .method-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 0 .9rem; border-top:1px solid var(--line); }
+  .method-list div { display:grid; grid-template-columns:minmax(9rem,.8fr) 1.2fr; gap:.65rem; min-width:0; padding:.52rem 0; border-bottom:1px solid var(--line); }
+  .method-list div:nth-child(odd) { padding-right:.75rem; }
+  .method-list div:nth-child(even) { padding-left:.75rem; border-left:1px solid var(--line); }
+  .method-list dt { min-width:0; overflow-wrap:anywhere; color:var(--accent-dark); font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.67rem; font-weight:700; }
+  .method-list dd { min-width:0; margin:0; color:var(--muted); font-size:.68rem; line-height:1.45; }
   .trace-toolbar { display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin-bottom:.7rem; }
   .trace-legend { display:flex; flex-wrap:wrap; gap:.55rem 1rem; color:var(--muted); font-size:.68rem; }
   .trace-legend span { display:inline-flex; align-items:center; gap:.38rem; }
@@ -125,5 +134,5 @@ const first = flow.nodes[0];
   .trace-note strong { color:var(--ink); }
   .experiment-record { padding-top:.65rem; border-top:1px solid var(--line); }
   @media(prefers-reduced-motion:reduce) { .packet { visibility:hidden; } .flow-node rect { transition:none; } }
-  @media(max-width:700px) { .experiment-flow { padding:1rem; } .lab-heading { display:block; } .lab-heading h2 { font-size:1.3rem; } .run-state { display:block; margin-top:.5rem; } .trace-toolbar { align-items:flex-start; } .trace-legend { gap:.4rem .6rem; } .trace-detail { align-items:flex-start; flex-wrap:wrap; min-height:122px; } .detail-file { max-width:100%; width:100%; margin-left:1.4rem; } }
+  @media(max-width:700px) { .experiment-flow { padding:1rem; } .lab-heading { display:block; } .lab-heading h2 { font-size:1.3rem; } .run-state { display:block; margin-top:.5rem; } .method-list { grid-template-columns:1fr; } .method-list div { grid-template-columns:minmax(7.5rem,.8fr) 1.2fr; padding:.5rem 0; } .method-list div:nth-child(odd), .method-list div:nth-child(even) { padding-left:0; padding-right:0; border-left:0; } .trace-toolbar { align-items:flex-start; } .trace-legend { gap:.4rem .6rem; } .trace-detail { align-items:flex-start; flex-wrap:wrap; min-height:122px; } .detail-file { max-width:100%; width:100%; margin-left:1.4rem; } }
 </style>

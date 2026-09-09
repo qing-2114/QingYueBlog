@@ -6,7 +6,7 @@ import Header from '../../components/Header.astro';
 import ProjectLab from '../../components/ProjectLab.astro';
 import ReActLab from '../../components/ReActLab.astro';
 import ExperimentFlow from '../../components/ExperimentFlow.astro';
-import { agentScopeFlow, autoGenFlow, camelFlow, chapterSevenFlow, langGraphFlow, planFlow, reflectionFlow } from '../../data/experiment-flows';
+import { agentScopeFlow, autoGenFlow, camelFlow, langGraphFlow, myLlmFlow, myReActAgentFlow, myReflectionAgentFlow, mySimpleAgentFlow, planFlow, reflectionFlow } from '../../data/experiment-flows';
 
 export async function getStaticPaths() {
 	const projects = await getCollection('projects');
@@ -35,8 +35,10 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 				<ProjectLab />
 				<article class="project-prose"><Content /></article>
 				{project.id === 'my-hello-agent' && <ReActLab />}
-				{project.id === 'my-hello-agent' && <><ExperimentFlow flow={langGraphFlow} /><ExperimentFlow flow={chapterSevenFlow} /><ExperimentFlow flow={planFlow} /><ExperimentFlow flow={reflectionFlow} /><ExperimentFlow flow={agentScopeFlow} /><ExperimentFlow flow={autoGenFlow} /><ExperimentFlow flow={camelFlow} /></>}
+				{project.id === 'my-hello-agent' && <><ExperimentFlow flow={planFlow} /><ExperimentFlow flow={reflectionFlow} /><ExperimentFlow flow={agentScopeFlow} /><ExperimentFlow flow={autoGenFlow} /><ExperimentFlow flow={camelFlow} /><ExperimentFlow flow={langGraphFlow} /></>}
 				{project.data.source && <p class="source-note">学习来源：<a href={project.data.source} rel="noreferrer">{project.data.source}</a></p>}
+				{project.id === 'my-hello-agent' && <section class="chapter-seven-heading" aria-labelledby="chapter-seven-title"><p class="eyebrow">7-EXPERIMENT / EXTENSIONS</p><h2 id="chapter-seven-title">第七章 · 四种独立扩展方法</h2><p>四个实验分别扩展模型 Provider、SimpleAgent 工具能力、ReAct 自纠能力和通用 Reflection 评估循环。它们共享项目配置，但彼此不是前后调用关系。</p></section>}
+				{project.id === 'my-hello-agent' && <><ExperimentFlow flow={myLlmFlow} /><ExperimentFlow flow={mySimpleAgentFlow} /><ExperimentFlow flow={myReActAgentFlow} /><ExperimentFlow flow={myReflectionAgentFlow} /></>}
 			</div>
 		</main>
 		<Footer />
@@ -60,5 +62,8 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 	.project-prose :global(h2) { margin-top: 2.4rem; font-size: 1.55rem; }
 	.project-prose :global(h3) { margin-top: 1.7rem; font-size: 1.15rem; }
 	.source-note { margin: 2rem 0 0; color: var(--muted); font-size: .8rem; }
+	.chapter-seven-heading { margin: 4.5rem 0 1.2rem; padding-top: 2rem; scroll-margin-top: 6rem; border-top: 1px solid var(--line); }
+	.chapter-seven-heading h2 { margin: 0; font-size: 1.8rem; }
+	.chapter-seven-heading > p:last-child { max-width: 48rem; margin: .7rem 0 0; color: var(--muted); font-size: .9rem; line-height: 1.7; }
 	@media (max-width: 700px) { .project-header { display: block; } .project-meta { justify-items: start; margin-top: 1.2rem; text-align: left; } .status { justify-content: start; } }
 </style>

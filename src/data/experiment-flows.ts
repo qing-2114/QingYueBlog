@@ -1,6 +1,7 @@
 export type FlowNode = { id: string; label: string; tag: string; x: number; y: number; detail: string; file: string; kind?: string };
 export type FlowRoute = { id: string; from: string; to: string; d: string; kind: 'main' | 'loop' | 'finish'; label?: string; x?: number; y?: number };
-export type ExperimentFlow = { id: string; title: string; eyebrow: string; summary: string; status: string; note: string; record: string; nodes: FlowNode[]; routes: FlowRoute[]; sequence: string[] };
+export type ExperimentMethod = { name: string; detail: string };
+export type ExperimentFlow = { id: string; title: string; eyebrow: string; summary: string; status: string; note: string; record: string; methods?: ExperimentMethod[]; legend?: { main: string; loop: string; finish: string }; nodes: FlowNode[]; routes: FlowRoute[]; sequence: string[] };
 
 export const planFlow: ExperimentFlow = {
   id: 'plan-solve', title: 'Plan-and-Solve 规划与求解链路', eyebrow: '4-EXPERIMENT / PLAN-AND-SOLVE',
@@ -81,29 +82,128 @@ export const langGraphFlow: ExperimentFlow = {
   sequence: ['input', 'understand', 'search', 'answer', 'complete'],
 };
 
-export const chapterSevenFlow: ExperimentFlow = {
-  id: 'chapter-seven-extensions', title: '第七章 · 框架扩展与评估', eyebrow: '7-EXPERIMENT / EXTEND & EVALUATE',
-  summary: '围绕统一配置形成两条扩展线：LLM 与 ReAct 能力增强，以及 SimpleAgent 与通用 Reflection 的任务评估。',
-  status: '已运行 · 离线测试 + 真实 API',
-  note: '上支路聚焦模型接入和 ReAct 工具闭环，下支路聚焦简单工具调用与通用反思；两条路径最终汇入真实 API 验证。',
-  record: '2026.09.09 · 真实验证覆盖基础对话 2 轮、自定义 LLM 1 次、MySimpleAgent 工具闭环、MyReActAgent 计算与搜索 2 条闭环、Reflection 3 次模型调用；Reflection 离线测试 5 项通过。',
+export const myLlmFlow: ExperimentFlow = {
+  id: 'chapter-seven-my-llm', title: 'MyLLM · Provider 扩展方法', eyebrow: '7-EXPERIMENT / MYLLM',
+  summary: '通过继承 HelloAgentsLLM，仅拦截 ModelScope 分支；框架已有 Provider 继续交给父类初始化。',
+  status: '已运行 · 真实 API 1 次',
+  methods: [
+    { name: '__init__', detail: '识别 modelscope 并创建兼容客户端' },
+    { name: 'super().__init__', detail: '保留框架已有 Provider 行为' },
+  ],
+  legend: { main: '原生 Provider', loop: 'ModelScope 分支', finish: '初始化完成' },
+  note: '蓝色是框架原生 Provider 分支，靛蓝是自定义 ModelScope 分支，绿色表示初始化完成；两条分支互斥，不会互相调用。',
+  record: '2026.09.09 · 使用项目统一 DeepSeek 配置完成 1 次真实响应；ModelScope 分支已实现，但本次未使用独立 ModelScope 凭证发起调用。',
   nodes: [
-    { id: 'config', label: '统一项目配置', tag: 'CONFIG', x: 20, y: 160, detail: '所有真实调用从项目根目录 .env 读取模型、Base URL 与 API Key；源码和输出不保存密钥。', file: 'core/config.py · .env' },
-    { id: 'llm', label: '扩展 MyLLM', tag: 'PROVIDER', x: 190, y: 70, detail: '继承 HelloAgentsLLM 增加 ModelScope 分支，其他 Provider 继续复用框架原生初始化逻辑。', file: 'agents/my_llm.py' },
-    { id: 'simple', label: '增强 Simple', tag: 'TOOLS', x: 190, y: 250, detail: '解析文本工具调用，执行注册工具并将结果回灌上下文，同时提供流式响应与工具管理接口。', file: 'agents/my_simple_agent.py' },
-    { id: 'react', label: '强化 ReAct', tag: 'SELF-CORRECT', x: 390, y: 70, detail: '增强 Thought/Action 解析；格式错误与空 Finish 会作为 Observation 回灌，并要求最终答案只依据工具观察。', file: 'agents/my_react_agent.py' },
-    { id: 'reflection', label: '通用 Reflection', tag: 'EVALUATE', x: 390, y: 250, detail: '初始回答、反思反馈与改进稿写入单次任务短期记忆；不假设输出必须是代码。', file: 'agents/my_reflection_agent.py' },
-    { id: 'verify', label: '真实链路验证', tag: 'LIVE API', x: 610, y: 160, kind: 'finish', detail: '真实模型分别完成对话、工具调用、搜索与反思流程；离线测试补充停止条件和异常分支。', file: 'demos/*.py · tests/test_my_reflection_agent.py' },
+    { id: 'input', label: '接收构造参数', tag: 'INIT', x: 30, y: 145, detail: '接收 model、api_key、base_url、provider 与其余模型参数。', file: '7-experiment/agents/my_llm.py · __init__' },
+    { id: 'route', label: '判断 Provider', tag: 'BRANCH', x: 210, y: 145, detail: '只有 provider == "modelscope" 才进入自定义实现；其他值直接走父类。', file: '7-experiment/agents/my_llm.py · provider' },
+    { id: 'modelscope', label: '组装 ModelScope', tag: 'CUSTOM', x: 410, y: 65, detail: '按显式参数、专用环境变量、统一环境变量的优先级解析密钥与模型，并创建 OpenAI 兼容客户端。', file: '7-experiment/agents/my_llm.py · ModelScope branch' },
+    { id: 'parent', label: '复用父类实现', tag: 'SUPER', x: 410, y: 225, detail: 'OpenAI、DeepSeek、Qwen 等框架已有 Provider 原样传给 super().__init__()。', file: '7-experiment/agents/my_llm.py · super' },
+    { id: 'ready', label: '得到 LLM 客户端', tag: 'READY', x: 625, y: 145, kind: 'finish', detail: '两条互斥分支最终都产生保持 HelloAgentsLLM 调用接口的客户端。', file: '7-experiment/demos/custom_llm_demo.py' },
   ],
   routes: [
-    { id: 'config-llm', from: 'config', to: 'llm', d: 'M 160 192 H 170 Q 180 192 180 182 V 112 Q 180 102 190 102', kind: 'main', label: '模型扩展', x: 145, y: 143 },
-    { id: 'config-simple', from: 'config', to: 'simple', d: 'M 160 192 H 170 Q 180 192 180 202 V 272 Q 180 282 190 282', kind: 'loop', label: 'Agent 扩展', x: 145, y: 243 },
-    { id: 'llm-react', from: 'llm', to: 'react', d: 'M 330 102 H 390', kind: 'main' },
-    { id: 'simple-reflection', from: 'simple', to: 'reflection', d: 'M 330 282 H 390', kind: 'loop' },
-    { id: 'react-verify', from: 'react', to: 'verify', d: 'M 530 102 H 570 Q 580 102 580 112 V 182 Q 580 192 590 192 H 610', kind: 'finish', label: '工具闭环', x: 574, y: 143 },
-    { id: 'reflection-verify', from: 'reflection', to: 'verify', d: 'M 530 282 H 570 Q 580 282 580 272 V 202 Q 580 192 590 192 H 610', kind: 'finish', label: '反思轨迹', x: 574, y: 252 },
+    { id: 'input-route', from: 'input', to: 'route', d: 'M 170 177 H 210', kind: 'main' },
+    { id: 'route-modelscope', from: 'route', to: 'modelscope', d: 'M 350 177 H 370 Q 380 177 380 167 V 107 Q 380 97 390 97 H 410', kind: 'loop', label: 'modelscope', x: 380, y: 131 },
+    { id: 'route-parent', from: 'route', to: 'parent', d: 'M 350 177 H 370 Q 380 177 380 187 V 247 Q 380 257 390 257 H 410', kind: 'main', label: '其他 Provider', x: 380, y: 231 },
+    { id: 'modelscope-ready', from: 'modelscope', to: 'ready', d: 'M 550 97 H 585 Q 595 97 595 107 V 167 Q 595 177 605 177 H 625', kind: 'finish' },
+    { id: 'parent-ready', from: 'parent', to: 'ready', d: 'M 550 257 H 585 Q 595 257 595 247 V 187 Q 595 177 605 177 H 625', kind: 'finish' },
   ],
-  sequence: ['config', 'llm', 'react', 'verify', 'config', 'simple', 'reflection', 'verify'],
+  sequence: ['input', 'route', 'modelscope', 'ready', 'input', 'route', 'parent', 'ready'],
+};
+
+export const mySimpleAgentFlow: ExperimentFlow = {
+  id: 'chapter-seven-my-simple-agent', title: 'MySimpleAgent · 文本工具调用扩展', eyebrow: '7-EXPERIMENT / MY SIMPLE AGENT',
+  summary: '在 SimpleAgent 对话历史之上增加文本动作解析、工具执行、Observation 回灌与可选流式响应。',
+  status: '已运行 · 真实工具闭环',
+  methods: [
+    { name: 'run / _run_with_tools', detail: '多轮文本工具调用' },
+    { name: 'stream_run', detail: '流式响应并保存完整历史' },
+    { name: 'add / remove / list_tools', detail: '运行时工具管理' },
+  ],
+  legend: { main: '模型响应链', loop: '工具调用回环', finish: '直接返回' },
+  note: '蓝色是每轮模型调用，靛蓝是检测到工具动作后的循环；没有工具动作时直接返回，工具能力关闭时也不会进入工具循环。',
+  record: '2026.09.09 · 真实模型输出 python_calculator 调用，工具计算 18 × 7 得到 126，结果回灌后生成最终回答。',
+  nodes: [
+    { id: 'input', label: '组装对话消息', tag: 'MESSAGES', x: 20, y: 90, detail: '合并增强系统提示词、历史消息和当前用户输入；提示词包含已注册工具及文本调用格式。', file: '7-experiment/agents/my_simple_agent.py · run' },
+    { id: 'model', label: '调用模型', tag: 'INVOKE', x: 185, y: 90, detail: '工具能力关闭时，这次响应直接成为最终答案；启用时继续解析文本动作。', file: '7-experiment/agents/my_simple_agent.py · llm.invoke' },
+    { id: 'parse', label: '解析工具动作', tag: 'PARSE', x: 350, y: 90, detail: '使用正则提取一个或多个 [TOOL_CALL:工具名:参数]，保留动作名称、参数和原始文本。', file: '7-experiment/agents/my_simple_agent.py · _parse_tool_calls' },
+    { id: 'execute', label: '执行注册工具', tag: 'TOOLS', x: 350, y: 235, detail: '计算器通过 registry.execute_tool 执行；其他工具按参数字典调用，错误会转成可读结果。', file: '7-experiment/agents/my_simple_agent.py · _execute_tool_call' },
+    { id: 'observe', label: '回灌工具结果', tag: 'OBSERVE', x: 185, y: 235, detail: '追加清理后的 assistant 消息和工具执行结果，再进入下一轮模型调用；循环次数受 max_tool_iterations 限制。', file: '7-experiment/agents/my_simple_agent.py · _run_with_tools' },
+    { id: 'finish', label: '保存并返回回答', tag: 'RETURN', x: 625, y: 90, kind: 'finish', detail: '没有工具动作时保存用户输入与最终响应；达到工具循环上限后还会进行一次收尾调用。', file: '7-experiment/agents/my_simple_agent.py · history' },
+  ],
+  routes: [
+    { id: 'input-model', from: 'input', to: 'model', d: 'M 160 122 H 185', kind: 'main' },
+    { id: 'model-parse', from: 'model', to: 'parse', d: 'M 325 122 H 350', kind: 'main' },
+    { id: 'parse-finish', from: 'parse', to: 'finish', d: 'M 490 122 H 625', kind: 'finish', label: '无工具动作', x: 557, y: 108 },
+    { id: 'parse-execute', from: 'parse', to: 'execute', d: 'M 420 154 V 235', kind: 'loop', label: '检测到动作', x: 463, y: 199 },
+    { id: 'execute-observe', from: 'execute', to: 'observe', d: 'M 350 267 H 325', kind: 'loop' },
+    { id: 'observe-model', from: 'observe', to: 'model', d: 'M 255 235 V 154', kind: 'loop', label: '下一轮', x: 292, y: 198 },
+  ],
+  sequence: ['input', 'model', 'parse', 'execute', 'observe', 'model', 'parse', 'finish'],
+};
+
+export const myReActAgentFlow: ExperimentFlow = {
+  id: 'chapter-seven-my-react-agent', title: 'MyReActAgent · 解析与自纠扩展', eyebrow: '7-EXPERIMENT / MY REACT AGENT',
+  summary: '保留 ReAct 的 Thought → Action → Observation 核心循环，增强输出解析、格式自纠和最终答案约束。',
+  status: '已运行 · 计算与搜索闭环',
+  methods: [
+    { name: 'MY_REACT_PROMPT', detail: '约束输出格式与事实来源' },
+    { name: 'run', detail: '格式错误不退出，写回 Observation' },
+    { name: '_parse_output / _parse_action', detail: '兼容多种模型输出格式' },
+  ],
+  legend: { main: 'ReAct 主步骤', loop: 'Observation 回环', finish: '合法 Finish' },
+  note: '蓝色是 ReAct 主步骤，靛蓝包含工具 Observation 与格式错误自纠两种回环；绿色只表示合法 Finish 返回。',
+  record: '2026.09.09 · 真实 API 完成计算工具与搜索工具两条闭环；搜索答案未补造 Observation 中不存在的官网地址。',
+  nodes: [
+    { id: 'prompt', label: '构造增强 Prompt', tag: 'CONTEXT', x: 20, y: 90, detail: '注入工具清单、用户问题和当前执行历史，并要求每次只输出 Thought 与 Action。', file: '7-experiment/agents/my_react_agent.py · MY_REACT_PROMPT' },
+    { id: 'model', label: '模型生成动作', tag: 'THINK', x: 175, y: 90, detail: '每一步调用 LLM；空响应会立即停止，非空响应交给增强解析器。', file: '7-experiment/agents/my_react_agent.py · run' },
+    { id: 'parse', label: '健壮解析 Action', tag: 'PARSE', x: 330, y: 90, detail: '容忍代码围栏、加粗、多行 Thought、中英文标签与动作尾注，再提取 工具名[参数]。', file: '7-experiment/agents/my_react_agent.py · _parse_output' },
+    { id: 'tool', label: '执行工具', tag: 'ACTION', x: 330, y: 235, detail: '合法的非 Finish 动作交给 ToolRegistry，执行结果作为 Observation 写入当前历史。', file: '7-experiment/agents/my_react_agent.py · execute_tool' },
+    { id: 'repair', label: '格式自纠', tag: 'REPAIR', x: 175, y: 235, detail: 'Action 无效或 Finish 为空时不直接退出，而是把明确格式要求作为 Observation 回灌。', file: '7-experiment/agents/my_react_agent.py · self-correction' },
+    { id: 'finish', label: '返回受约束答案', tag: 'FINISH', x: 625, y: 90, kind: 'finish', detail: '合法 Finish 保存历史并返回；提示词要求具体事实只能来自本轮 Observation。', file: '7-experiment/agents/my_react_agent.py · Finish' },
+  ],
+  routes: [
+    { id: 'prompt-model', from: 'prompt', to: 'model', d: 'M 160 122 H 175', kind: 'main' },
+    { id: 'model-parse', from: 'model', to: 'parse', d: 'M 315 122 H 330', kind: 'main' },
+    { id: 'parse-finish', from: 'parse', to: 'finish', d: 'M 470 122 H 625', kind: 'finish', label: '合法 Finish', x: 547, y: 108 },
+    { id: 'parse-tool', from: 'parse', to: 'tool', d: 'M 400 154 V 235', kind: 'loop', label: '工具动作', x: 438, y: 199 },
+    { id: 'parse-repair', from: 'parse', to: 'repair', d: 'M 365 154 V 190 Q 365 200 355 200 H 255 Q 245 200 245 210 V 235', kind: 'loop', label: '格式无效', x: 305, y: 188 },
+    { id: 'tool-prompt', from: 'tool', to: 'prompt', d: 'M 330 267 V 320 Q 330 330 320 330 H 90 Q 75 330 75 315 V 154', kind: 'loop', label: '工具 Observation', x: 205, y: 348 },
+    { id: 'repair-prompt', from: 'repair', to: 'prompt', d: 'M 175 267 H 120 Q 110 267 110 257 V 154', kind: 'loop', label: '纠错 Observation', x: 119, y: 222 },
+  ],
+  sequence: ['prompt', 'model', 'parse', 'tool', 'prompt', 'model', 'parse', 'repair', 'prompt', 'model', 'parse', 'finish'],
+};
+
+export const myReflectionAgentFlow: ExperimentFlow = {
+  id: 'chapter-seven-my-reflection-agent', title: 'MyReflectionAgent · 通用反思扩展', eyebrow: '7-EXPERIMENT / MY REFLECTION AGENT',
+  summary: '把第四章面向代码的 Reflection 结构泛化为文本任务，并为每次 run 建立独立短期反思轨迹。',
+  status: '已运行 · 3 次真实模型调用',
+  methods: [
+    { name: 'ReflectionMemory', detail: '记录 execution 与 reflection 轨迹' },
+    { name: '_merge_prompts', detail: '允许局部覆盖三段模板' },
+    { name: 'run / get_trajectory', detail: '执行通用反思并导出轨迹' },
+    { name: '_is_no_improvement', detail: '严格判断提前停止短语' },
+  ],
+  legend: { main: '生成与评审', loop: '改进迭代', finish: '返回条件' },
+  note: '蓝色是回答与评审主链，靛蓝是需要改进时的迭代回环；绿色包括“无需改进”和达到轮数上限两种返回条件。',
+  record: '2026.09.09 · 真实 API 完成初始回答、反思、改进 3 次调用；5 项离线测试覆盖提前停止、零轮迭代、误判防护与异常响应。',
+  nodes: [
+    { id: 'input', label: '校验并重置记忆', tag: 'TASK', x: 20, y: 90, detail: '拒绝空任务；每次 run 新建 ReflectionMemory，使不同任务的中间轨迹彼此隔离。', file: '7-experiment/agents/my_reflection_agent.py · run' },
+    { id: 'initial', label: '生成初始回答', tag: 'INITIAL', x: 175, y: 90, detail: '使用 initial 模板调用 LLM，并以 execution 类型保存第一版回答。', file: '7-experiment/agents/my_reflection_agent.py · initial' },
+    { id: 'reflect', label: '反思当前回答', tag: 'REFLECT', x: 330, y: 90, detail: '读取最近一次 execution，结合原始任务生成反馈，并以 reflection 类型写入轨迹。', file: '7-experiment/agents/my_reflection_agent.py · reflect' },
+    { id: 'check', label: '判断停止条件', tag: 'CHECK', x: 485, y: 90, detail: '只有完整反馈恰为“无需改进”或英文等价短语才提前停止，普通包含该词的反馈不会误判。', file: '7-experiment/agents/my_reflection_agent.py · _is_no_improvement' },
+    { id: 'refine', label: '按反馈改进', tag: 'REFINE', x: 330, y: 235, detail: '把任务、上一版回答和反馈填入 refine 模板，生成新回答并追加为 execution。', file: '7-experiment/agents/my_reflection_agent.py · refine' },
+    { id: 'finish', label: '保存最终问答', tag: 'RETURN', x: 640, y: 235, kind: 'finish', detail: '无需改进或达到 max_iterations 后，取最近回答写入 Agent 历史并返回。', file: '7-experiment/agents/my_reflection_agent.py · history' },
+  ],
+  routes: [
+    { id: 'input-initial', from: 'input', to: 'initial', d: 'M 160 122 H 175', kind: 'main' },
+    { id: 'initial-reflect', from: 'initial', to: 'reflect', d: 'M 315 122 H 330', kind: 'main' },
+    { id: 'reflect-check', from: 'reflect', to: 'check', d: 'M 470 122 H 485', kind: 'main' },
+    { id: 'check-finish', from: 'check', to: 'finish', d: 'M 555 154 V 205 Q 555 215 565 215 H 630 Q 640 215 640 225 V 235', kind: 'finish', label: '无需改进', x: 595, y: 202 },
+    { id: 'check-refine', from: 'check', to: 'refine', d: 'M 555 154 V 190 Q 555 200 545 200 H 410 Q 400 200 400 210 V 235', kind: 'loop', label: '需要改进', x: 478, y: 188 },
+    { id: 'refine-reflect', from: 'refine', to: 'reflect', d: 'M 400 235 V 154', kind: 'loop', label: '下一轮', x: 438, y: 198 },
+    { id: 'refine-finish', from: 'refine', to: 'finish', d: 'M 470 267 H 640', kind: 'finish', label: '达到轮数上限', x: 555, y: 253 },
+  ],
+  sequence: ['input', 'initial', 'reflect', 'check', 'refine', 'reflect', 'check', 'finish'],
 };
 
 const chapterSixBase = { eyebrow: '6-EXPERIMENT / MULTI-AGENT', status: '已实现 · 流程动画', note: '蓝色是协作主链，靛蓝是状态或工具回环，绿色是可检查产出。' };
