@@ -17,14 +17,19 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 </header>
 <style>
 	.site-header { position: sticky; top: .8rem; z-index: 10; padding: 0 1rem; }
-	.nav-shell { position: relative; width: min(1080px, 100%); margin: auto; padding: .65rem .8rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: rgba(255,255,255,.68); border: 1px solid rgba(138,180,224,.28); border-radius: 12px; box-shadow: 0 10px 28px rgba(47,117,181,.10); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+	.nav-shell { position: relative; width: min(1080px, 100%); margin: auto; padding: .65rem .8rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #f8fbff; border: 1px solid rgba(138,180,224,.28); border-radius: 12px; box-shadow: 0 10px 28px rgba(47,117,181,.10); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 	.brand { display: inline-flex; align-items: center; color: var(--ink); font-weight: 700; letter-spacing: .01em; text-decoration: none; white-space: nowrap; }
 	.internal-links { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: .25rem; }
-	.internal-links :global(a) { padding: .48rem .75rem; color: var(--muted); border-radius: 8px; font-size: .9rem; text-decoration: none; }
+	.internal-links :global(a) { padding: .48rem .75rem; color: var(--muted); border-radius: 8px; font-size: .9rem; text-decoration: none; white-space: nowrap; }
 	.internal-links :global(a:hover), .internal-links :global(a.active) { color: var(--accent); background: rgba(91,163,224,.12); }
 	@media (max-width: 720px) {
 		.nav-shell { padding: .55rem; }
 		.internal-links { position: static; margin: auto; transform: none; }
 		.internal-links :global(a) { padding-inline: .55rem; }
+	}
+	@media (max-width: 520px) {
+		.nav-shell { flex-direction: column; gap: .15rem; }
+		.internal-links { margin: 0; justify-content: center; width: 100%; }
+		.internal-links :global(a) { padding: .35rem .75rem; }
 	}
 </style>
