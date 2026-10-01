@@ -32,7 +32,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 					<div class="project-meta"><span class="status"><i aria-hidden="true"></i>{project.data.statusLabel}</span><span>开始于 {project.data.startDate.toLocaleDateString('zh-CN')}</span>{project.data.updatedDate && <span>更新于 {project.data.updatedDate.toLocaleDateString('zh-CN')}</span>}</div>
 				</header>
 				<div class="tag-row">{project.data.tags.map((tag) => <span>#{tag}</span>)}</div>
-				<ProjectLab />
+				{project.id === 'my-hello-agent' && <ProjectLab />}
 				<article class="project-prose"><Content /></article>
 				{project.id === 'my-hello-agent' && <ReActLab />}
 				{project.id === 'my-hello-agent' && <><ExperimentFlow flow={planFlow} /><ExperimentFlow flow={reflectionFlow} /><ExperimentFlow flow={agentScopeFlow} /><ExperimentFlow flow={autoGenFlow} /><ExperimentFlow flow={camelFlow} /><ExperimentFlow flow={langGraphFlow} /></>}
