@@ -19,20 +19,23 @@ const routes = [
 
 	<p class="lab-summary">用网页搜索实践 Thought → Action → Observation：工具结果回到上下文，直到生成最终答案。</p>
 
+	<div class="trace-toolbar">
 	<div class="trace-legend" aria-label="链路图图例">
 		<span><i class="legend-line main" aria-hidden="true"></i>单步主链</span>
 		<span><i class="legend-line tool" aria-hidden="true"></i>工具调用回环</span>
 		<span><i class="legend-line finish" aria-hidden="true"></i>Finish 结束分支</span>
 	</div>
+		<button class="play-toggle" type="button" aria-pressed="true">暂停演示</button>
+	</div>
 
 	<div class="trace-shell">
-		<div class="trace-scroll" tabindex="0" aria-label="ReAct Agent 执行链路图，可横向滚动">
-			<svg class="trace-map" viewBox="0 90 960 330" role="img" aria-labelledby="react-trace-title react-trace-desc">
+		<div class="trace-scroll" tabindex="0" role="region" aria-label="ReAct Agent 执行链路图，可横向滚动">
+			<svg class="trace-map" viewBox="0 90 960 330" role="group" aria-labelledby="react-trace-title react-trace-desc">
 				<title id="react-trace-title">ReAct Agent 的 Thought、Action 和 Observation 循环</title>
 				<desc id="react-trace-desc">用户问题被组装为包含工具清单和历史记录的 ReAct 提示词。模型生成 Thought 和 Action，解析后可以 Finish 返回答案，或调用注册工具。工具结果作为 Observation 追加到历史，再开始下一步，最多五步。</desc>
 				<defs>
 					<pattern id="react-trace-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(138,180,224,.17)" stroke-width="1"></path></pattern>
-					<filter id="react-trace-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
+					<filter id="react-trace-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.5" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
 					<marker id="react-arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#287fc3"></path></marker>
 					<marker id="react-arrow-tool" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5b7fba"></path></marker>
 					<marker id="react-arrow-finish" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c9b76"></path></marker>
@@ -59,72 +62,131 @@ const routes = [
                     </g>
                 ))}
 
-				<g class="react-diagram-node active" data-node="input" data-index="01" data-title="接收问题" data-detail="run(question) 开始一轮任务，并在进入循环前清空本轮 history。" data-files="ReAct/agent.py · run" tabindex="0" role="button" aria-label="01 接收问题"><rect x="40" y="150" width="90" height="64" rx="14"></rect><text x="52" y="170" class="node-index">01 · INPUT</text><text x="85" y="193" class="node-label">接收问题</text></g>
-				<g class="react-diagram-node context-node" data-node="prompt" data-index="02" data-title="构造 ReAct Prompt" data-detail="把问题、工具描述和已有 Observation 一起填入提示词模板。" data-files="ReAct/agent.py · prompts.py" tabindex="0" role="button" aria-label="02 构造 ReAct Prompt"><rect x="175" y="150" width="150" height="64" rx="14"></rect><text x="189" y="170" class="node-index">02 · CONTEXT</text><text x="250" y="193" class="node-label">构造 ReAct Prompt</text></g>
-				<g class="react-diagram-node decision-node" data-node="think" data-index="03" data-title="模型生成 Thought / Action" data-detail="HelloAgentsLLM.think() 返回模型输出；提示词要求严格的 Thought 与 Action 格式。" data-files="ReAct/agent.py · llm_client.py" tabindex="0" role="button" aria-label="03 模型生成 Thought 和 Action"><rect x="365" y="150" width="110" height="64" rx="14"></rect><text x="379" y="170" class="node-index">03 · THINK</text><text x="420" y="193" class="node-label">模型决策</text></g>
-				<g class="react-diagram-node" data-node="parse" data-index="04" data-title="解析 Action" data-detail="提取 Thought 和 Action；Action 只能是 工具名[输入] 或 Finish[最终答案]。" data-files="ReAct/agent.py · _parse_output" tabindex="0" role="button" aria-label="04 解析 Action"><rect x="515" y="150" width="110" height="64" rx="14"></rect><text x="529" y="170" class="node-index">04 · PARSE</text><text x="570" y="193" class="node-label">解析 Action</text></g>
-				<g class="react-diagram-node finish-node" data-node="finish" data-index="05" data-title="Finish 返回答案" data-detail="检测到 Finish[最终答案] 后，立即结束当前回合并将答案返回给用户。" data-files="ReAct/agent.py · run" tabindex="0" role="button" aria-label="05 Finish 返回答案"><rect x="690" y="150" width="150" height="64" rx="14"></rect><text x="704" y="170" class="node-index">05 · FINISH</text><text x="765" y="193" class="node-label">返回最终答案</text></g>
-				<g class="react-diagram-node tool-node" data-node="executor" data-index="06" data-title="查找注册工具" data-detail="ToolExecutor 依据 Action 中的工具名称取得对应函数；未找到时生成错误 Observation。" data-files="ReAct/tools.py · ToolExecutor" tabindex="0" role="button" aria-label="06 查找注册工具"><rect x="555" y="270" width="155" height="60" rx="14"></rect><text x="569" y="289" class="node-index">06 · ACTION</text><text x="632" y="312" class="node-label">查找注册工具</text></g>
-				<g class="react-diagram-node tool-node" data-node="search" data-index="07" data-title="执行搜索工具" data-detail="当前注册 search：有本地 SERPAPI_API_KEY 时才请求 SerpApi，并返回直接答案、知识图谱或前三条摘要。" data-files="ReAct/tools.py · search" tabindex="0" role="button" aria-label="07 执行搜索工具"><rect x="750" y="270" width="110" height="60" rx="14"></rect><text x="764" y="289" class="node-index">07 · TOOL</text><text x="805" y="312" class="node-label">网页搜索</text></g>
-				<g class="react-diagram-node support-node" data-node="observe" data-index="08" data-title="追加 Observation" data-detail="工具结果或解析错误写入 history，下一步构造 Prompt 时由模型参考。" data-files="ReAct/agent.py · history" tabindex="0" role="button" aria-label="08 追加 Observation"><rect x="390" y="270" width="110" height="60" rx="14"></rect><text x="404" y="289" class="node-index">08 · OBSERVE</text><text x="445" y="312" class="node-label">结果回灌</text></g>
+				<g class="react-diagram-node active" data-node="input" data-index="01" data-title="接收问题" data-detail="run(question) 开始一轮任务，并在进入循环前清空本轮 history。" data-files="ReAct/agent.py · run" tabindex="0" role="button" aria-pressed="true" aria-label="01 接收问题"><rect x="40" y="150" width="90" height="64" rx="6"></rect><text x="52" y="170" class="node-index">01 · INPUT</text><text x="85" y="193" class="node-label">接收问题</text></g>
+				<g class="react-diagram-node context-node" data-node="prompt" data-index="02" data-title="构造 ReAct Prompt" data-detail="把问题、工具描述和已有 Observation 一起填入提示词模板。" data-files="ReAct/agent.py · prompts.py" tabindex="0" role="button" aria-pressed="false" aria-label="02 构造 ReAct Prompt"><rect x="175" y="150" width="150" height="64" rx="6"></rect><text x="189" y="170" class="node-index">02 · CONTEXT</text><text x="250" y="193" class="node-label">构造 ReAct Prompt</text></g>
+				<g class="react-diagram-node decision-node" data-node="think" data-index="03" data-title="模型生成 Thought / Action" data-detail="HelloAgentsLLM.think() 返回模型输出；提示词要求严格的 Thought 与 Action 格式。" data-files="ReAct/agent.py · llm_client.py" tabindex="0" role="button" aria-pressed="false" aria-label="03 模型生成 Thought 和 Action"><rect x="365" y="150" width="110" height="64" rx="6"></rect><text x="379" y="170" class="node-index">03 · THINK</text><text x="420" y="193" class="node-label">模型决策</text></g>
+				<g class="react-diagram-node" data-node="parse" data-index="04" data-title="解析 Action" data-detail="提取 Thought 和 Action；Action 只能是 工具名[输入] 或 Finish[最终答案]。" data-files="ReAct/agent.py · _parse_output" tabindex="0" role="button" aria-pressed="false" aria-label="04 解析 Action"><rect x="515" y="150" width="110" height="64" rx="6"></rect><text x="529" y="170" class="node-index">04 · PARSE</text><text x="570" y="193" class="node-label">解析 Action</text></g>
+				<g class="react-diagram-node finish-node" data-node="finish" data-index="05" data-title="Finish 返回答案" data-detail="检测到 Finish[最终答案] 后，立即结束当前回合并将答案返回给用户。" data-files="ReAct/agent.py · run" tabindex="0" role="button" aria-pressed="false" aria-label="05 Finish 返回答案"><rect x="690" y="150" width="150" height="64" rx="6"></rect><text x="704" y="170" class="node-index">05 · FINISH</text><text x="765" y="193" class="node-label">返回最终答案</text></g>
+				<g class="react-diagram-node tool-node" data-node="executor" data-index="06" data-title="查找注册工具" data-detail="ToolExecutor 依据 Action 中的工具名称取得对应函数；未找到时生成错误 Observation。" data-files="ReAct/tools.py · ToolExecutor" tabindex="0" role="button" aria-pressed="false" aria-label="06 查找注册工具"><rect x="555" y="270" width="155" height="60" rx="6"></rect><text x="569" y="289" class="node-index">06 · ACTION</text><text x="632" y="312" class="node-label">查找注册工具</text></g>
+				<g class="react-diagram-node tool-node" data-node="search" data-index="07" data-title="执行搜索工具" data-detail="当前注册 search：有本地 SERPAPI_API_KEY 时才请求 SerpApi，并返回直接答案、知识图谱或前三条摘要。" data-files="ReAct/tools.py · search" tabindex="0" role="button" aria-pressed="false" aria-label="07 执行搜索工具"><rect x="750" y="270" width="110" height="60" rx="6"></rect><text x="764" y="289" class="node-index">07 · TOOL</text><text x="805" y="312" class="node-label">网页搜索</text></g>
+				<g class="react-diagram-node support-node" data-node="observe" data-index="08" data-title="追加 Observation" data-detail="工具结果或解析错误写入 history，下一步构造 Prompt 时由模型参考。" data-files="ReAct/agent.py · history" tabindex="0" role="button" aria-pressed="false" aria-label="08 追加 Observation"><rect x="390" y="270" width="110" height="60" rx="6"></rect><text x="404" y="289" class="node-index">08 · OBSERVE</text><text x="445" y="312" class="node-label">结果回灌</text></g>
 			</svg>
 		</div>
 
-		<div class="trace-detail" aria-live="polite"><span class="react-detail-index" id="react-detail-index">01</span><div><strong id="react-detail-title">接收问题</strong><p id="react-detail-copy">run(question) 开始一轮任务，并在进入循环前清空本轮 history。</p></div><code id="react-detail-files">ReAct/agent.py · run</code></div>
+		<div class="trace-detail" aria-live="off" aria-atomic="true"><span class="react-detail-index" id="react-detail-index">01</span><div><strong id="react-detail-title">接收问题</strong><p id="react-detail-copy">run(question) 开始一轮任务，并在进入循环前清空本轮 history。</p></div><code id="react-detail-files">ReAct/agent.py · run</code></div>
 	</div>
 
 	<p class="trace-note"><strong>读图方式：</strong>蓝色是每一步的主执行链；模型选择工具时走靛蓝色回环，Observation 被写入 history 后重新构造 Prompt；绿色 Finish 分支直接返回答案。整个循环最多执行 5 步。</p>
 </section>
 
 <script>
-	const order = ['input', 'prompt', 'think', 'parse', 'executor', 'search', 'observe', 'finish'];
-	const nodes = [...document.querySelectorAll<SVGGElement>('.react-diagram-node')];
-	const detailIndex = document.querySelector('#react-detail-index');
-	const detailTitle = document.querySelector('#react-detail-title');
-	const detailCopy = document.querySelector('#react-detail-copy');
-	const detailFiles = document.querySelector('#react-detail-files');
-	const runLabel = document.querySelector('#react-run-label');
-	let current = 0;
-	const selectNode = (id: string, announce = true) => {
-		const node = nodes.find((item) => item.dataset.node === id);
-		if (!node || !detailIndex || !detailTitle || !detailCopy || !detailFiles) return;
-		current = order.indexOf(id);
-		nodes.forEach((item) => item.classList.toggle('active', item === node));
-		detailIndex.textContent = node.dataset.index ?? '';
-		detailTitle.textContent = node.dataset.title ?? '';
-		detailCopy.textContent = node.dataset.detail ?? '';
-		detailFiles.textContent = node.dataset.files ?? '';
-		if (announce && runLabel) runLabel.textContent = node.dataset.title ?? '';
-	};
-	nodes.forEach((node) => {
-		node.addEventListener('click', () => selectNode(node.dataset.node ?? ''));
-		node.addEventListener('keydown', (event) => {
-			if (event.key === 'Enter' || event.key === ' ') {
-				event.preventDefault();
-				selectNode(node.dataset.node ?? '');
-			}
-		});
-	});
-	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-		window.setInterval(() => selectNode(order[(current + 1) % order.length], false), 4000);
-	}
+    document.querySelectorAll<HTMLElement>('.react-lab').forEach((section) => {
+        const order = ['input', 'prompt', 'think', 'parse', 'executor', 'search', 'observe', 'finish'];
+        const nodes = [...section.querySelectorAll<SVGGElement>('.react-diagram-node')];
+        const svg = section.querySelector<SVGSVGElement>('.trace-map')!;
+        const toggle = section.querySelector<HTMLButtonElement>('.play-toggle')!;
+        const detail = section.querySelector<HTMLElement>('.trace-detail')!;
+        const detailIndex = section.querySelector('#react-detail-index')!;
+        const detailTitle = section.querySelector('#react-detail-title')!;
+        const detailCopy = section.querySelector('#react-detail-copy')!;
+        const detailFiles = section.querySelector('#react-detail-files')!;
+        const runLabel = section.querySelector('#react-run-label')!;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let current = 0;
+        let playing = !reduced.matches;
+        let visible = false;
+        let timer: number | undefined;
+
+        const selectNode = (id: string, manual = false) => {
+            const node = nodes.find((item) => item.dataset.node === id);
+            if (!node) return;
+            if (manual) {
+                playing = false;
+                syncPlayback();
+            }
+            current = Math.max(0, order.indexOf(id));
+            nodes.forEach((item) => {
+                const selected = item === node;
+                item.classList.toggle('active', selected);
+                item.setAttribute('aria-pressed', String(selected));
+            });
+            detailIndex.textContent = node.dataset.index ?? '';
+            detailTitle.textContent = node.dataset.title ?? '';
+            detailCopy.textContent = node.dataset.detail ?? '';
+            detailFiles.textContent = node.dataset.files ?? '';
+            if (manual) runLabel.textContent = node.dataset.title ?? '';
+        };
+
+        const syncPlayback = () => {
+            const running = playing && visible && !document.hidden;
+            toggle.textContent = playing ? '暂停演示' : '播放演示';
+            toggle.setAttribute('aria-pressed', String(playing));
+            section.classList.toggle('is-paused', !running);
+            detail.setAttribute('aria-live', playing ? 'off' : 'polite');
+            if (running) {
+                svg.unpauseAnimations();
+                if (timer === undefined) {
+                    timer = window.setInterval(() => {
+                        selectNode(order[(current + 1) % order.length]);
+                    }, 4000);
+                }
+            } else {
+                svg.pauseAnimations();
+                if (timer !== undefined) {
+                    window.clearInterval(timer);
+                    timer = undefined;
+                }
+            }
+        };
+
+        nodes.forEach((node) => {
+            node.addEventListener('click', () => selectNode(node.dataset.node ?? '', true));
+            node.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    selectNode(node.dataset.node ?? '', true);
+                }
+            });
+        });
+        toggle.addEventListener('click', () => {
+            playing = !playing;
+            syncPlayback();
+        });
+        const observer = new IntersectionObserver((entries) => {
+            visible = entries[0].isIntersecting;
+            syncPlayback();
+        });
+        observer.observe(section);
+        document.addEventListener('visibilitychange', syncPlayback);
+        reduced.addEventListener('change', () => {
+            if (reduced.matches) playing = false;
+            syncPlayback();
+        });
+        window.addEventListener('pagehide', () => {
+            if (timer !== undefined) window.clearInterval(timer);
+            timer = undefined;
+            svg.pauseAnimations();
+        });
+        window.addEventListener('pageshow', syncPlayback);
+        syncPlayback();
+    });
 </script>
 
 <style>
-	.react-lab { width: 100%; max-width: 100%; min-width: 0; margin: 2.4rem 0; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.52); box-shadow: 0 16px 38px rgba(38,111,170,.08); }
+	.react-lab { width: 100%; max-width: 100%; min-width: 0; margin: 2.4rem 0; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: none; }
 	.lab-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; }
 	.eyebrow { margin: 0 0 .3rem; color: var(--accent); font-size: .66rem; font-weight: 700; letter-spacing: .16em; }
 	.lab-heading h2 { margin: 0; font-size: 1.55rem; }
 	.run-state { display: inline-flex; align-items: center; gap: .4rem; color: var(--muted); font-size: .7rem; white-space: nowrap; }
-	.run-dot { width: 7px; height: 7px; border-radius: 50%; background: #3c9b76; box-shadow: 0 0 0 4px rgba(60,155,118,.14); animation: blink 1.8s ease-in-out infinite; }
+	.run-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
 	.lab-summary { margin: 0 0 .9rem; color: var(--muted); font-size: .8rem; line-height: 1.65; }
-	.trace-legend { display: flex; flex-wrap: wrap; gap: .55rem 1rem; margin: 0 0 .7rem; color: var(--muted); font-size: .68rem; }
+	.trace-legend { display: flex; flex-wrap: wrap; gap: .55rem 1rem; margin: 0; color: var(--muted); font-size: .75rem; }
 	.trace-legend span { display: inline-flex; align-items: center; gap: .38rem; }
 	.legend-line { display: inline-block; width: 20px; height: 0; border-top: 2px solid; }
 	.legend-line.main { border-color: #287fc3; }
 	.legend-line.tool { border-color: #5b7fba; border-top-style: dashed; }
 	.legend-line.finish { border-color: #3c9b76; border-top-style: dotted; }
-	.trace-shell { overflow: hidden; border: 1px solid rgba(138,180,224,.3); border-radius: 10px; background: rgba(245,250,255,.72); }
+	.trace-shell { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
 	.trace-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
 	.trace-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 	.trace-map { display: block; width: 100%; min-width: 820px; }
@@ -138,7 +200,7 @@ const routes = [
 	.tool-label { fill: #5b7fba; }
 	.finish-label { fill: #3c9b76; }
 	.react-diagram-node { cursor: pointer; outline: none; }
-	.react-diagram-node rect { fill: rgba(255,255,255,.94); stroke: rgba(138,180,224,.68); stroke-width: 1.4; transition: fill .25s, stroke .25s, filter .25s; }
+	.react-diagram-node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.4; transition: fill .25s, stroke .25s, filter .25s; }
 	.react-diagram-node text { font-family: var(--font-atkinson); pointer-events: none; }
 	.node-index { fill: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .06em; }
 	.node-label { fill: var(--ink); font-size: 13px; font-weight: 700; text-anchor: middle; }
@@ -146,16 +208,50 @@ const routes = [
 	.tool-node rect { stroke: rgba(91,127,186,.7); }
 	.context-node rect, .support-node rect, .finish-node rect { stroke: rgba(60,155,118,.68); }
 	.react-diagram-node:hover rect { fill: rgba(91,163,224,.1); }
-	.react-diagram-node.active rect, .react-diagram-node:focus rect { fill: rgba(91,163,224,.16); stroke: var(--accent); stroke-width: 2.4; filter: drop-shadow(0 0 6px rgba(40,127,195,.3)); }
-	.trace-detail { display: flex; align-items: center; gap: .7rem; min-height: 70px; padding: .7rem .9rem; border-top: 1px solid var(--line); background: rgba(255,255,255,.62); }
+	.react-diagram-node.active rect, .react-diagram-node:focus rect { fill: rgba(91,163,224,.16); stroke: var(--accent); stroke-width: 2.4; filter: none; }
+	.trace-detail { display: flex; align-items: center; gap: .7rem; min-height: 86px; padding: .7rem .9rem; border-top: 1px solid var(--line); background: var(--surface-alt); }
 	.react-detail-index { color: var(--accent); font-size: .7rem; font-weight: 700; }
 	.trace-detail div { min-width: 0; flex: 1; }
 	.trace-detail strong { font-size: .82rem; }
-	.trace-detail p { margin: .12rem 0 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
-	.trace-detail code { color: var(--accent-dark); font-size: .65rem; white-space: nowrap; }
+	.trace-detail p { margin: .12rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+	.trace-detail code { color: var(--accent-dark); font-size: .72rem; max-width: 38%; overflow-wrap: anywhere; }
 	.trace-note { margin: .75rem .15rem 0; color: var(--muted); font-size: .72rem; line-height: 1.55; }
 	.trace-note strong { color: var(--ink); }
 	@keyframes blink { 50% { opacity: .35; } }
 	@media (prefers-reduced-motion: reduce) { .trace-packets, .run-dot { display: none; animation: none; } }
-	@media (max-width: 700px) { .react-lab { padding: 1rem; } .lab-heading { display: block; } .lab-heading h2 { font-size: 1.3rem; } .run-state { margin-top: .5rem; } .trace-map { width: 820px; min-width: 820px; } .trace-detail { align-items: flex-start; flex-wrap: wrap; } .trace-detail code { width: 100%; margin-left: 1.4rem; white-space: normal; } }
+	@media (max-width: 700px) { .react-lab { padding: 1rem; } .lab-heading { display: block; } .lab-heading h2 { font-size: 1.3rem; } .run-state { margin-top: .5rem; } .trace-map { width: 820px; min-width: 820px; } .trace-detail { align-items: flex-start; flex-wrap: wrap; } .trace-detail code { width: 100%; max-width: 100%; margin-left: 1.4rem; white-space: normal; } }
+
+    .trace-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: .9rem;
+    }
+    .play-toggle {
+        flex-shrink: 0;
+        min-height: 44px;
+        padding: .4rem .8rem;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--accent-dark);
+        font-size: .78rem;
+    }
+    .play-toggle:hover {
+        border-color: var(--accent);
+        background: var(--surface-alt);
+    }
+    .is-paused .run-dot {
+        animation-play-state: paused;
+    }
+    @media (max-width: 560px) {
+        .trace-toolbar {
+            align-items: flex-start;
+            gap: .6rem;
+        }
+        .trace-detail {
+            min-height: 122px;
+        }
+    }
 </style>

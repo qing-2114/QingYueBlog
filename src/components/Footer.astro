@@ -1,11 +1,26 @@
 ---
-const today = new Date();
+import { basePath } from '../utils/content';
+const year = new Date().getFullYear();
 ---
-
-<footer>
-	<p>© {today.getFullYear()} 清月 · 用文字记录正在发生的事</p>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div><p class="eyebrow">KEEP EXPLORING</p><h2>下一次探索，<br />从一个好问题开始。</h2></div>
+      <div class="footer-links"><a href={`${basePath}blog/`}>阅读文章 ↗</a><a href={`${basePath}projects/`}>探索实验室 ↗</a><a href="https://github.com/qing-2114" target="_blank" rel="noreferrer">GitHub ↗</a></div>
+    </div>
+    <div class="footer-bottom"><span>© {year} 清月 · 记录思考，留下实践。</span><span>Built with Astro · Shenzhen</span><a href="#main-content">回到顶部 ↑</a></div>
+  </div>
 </footer>
 <style>
-	footer { max-width: 1080px; margin: 2rem auto 0; padding: 2rem 1rem 3rem; border-top: 1px solid rgba(138,180,224,.24); color: var(--muted); text-align: center; }
-	footer p { margin: 0 0 .4rem; font-size: .86rem; }
+  .site-footer { margin-top: 2rem; border-top: 1px solid var(--line); background: var(--surface-alt); }
+  .footer-inner { width: min(1184px, calc(100% - 80px)); margin: auto; padding: 3.5rem 0 1.5rem; }
+  .footer-top { display: flex; justify-content: space-between; align-items: end; gap: 2rem; padding-bottom: 3rem; }
+  h2 { margin: 0; font-family: var(--font-display); font-size: 2rem; font-weight: 400; line-height: 1.6; }
+  .footer-links { display: grid; grid-template-columns: repeat(3, auto); gap: 2rem; }
+  .footer-links a { display: flex; align-items: center; min-height: 44px; font-size: .85rem; text-decoration: none; color: var(--ink); }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 2rem; padding-top: 1.3rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .7rem; }
+  .footer-bottom a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+  @media (max-width: 900px) { .footer-inner { width: calc(100% - 48px); } .footer-links { gap: 1rem; } }
+  @media (max-width: 600px) { .footer-inner { width: calc(100% - 40px); padding-top: 2rem; } .footer-top { align-items: start; flex-direction: column; padding-bottom: 1.5rem; } h2 { font-size: 1.7rem; } .footer-bottom { align-items: start; flex-direction: column; } }
 </style>

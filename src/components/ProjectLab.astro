@@ -24,20 +24,23 @@ const routes = [
 
 	<p class="lab-summary">从旅行推荐出发，加入偏好记忆、多轮反馈与模拟票务；连续三次拒绝会触发策略调整。</p>
 
+	<div class="trace-toolbar">
 	<div class="trace-legend" aria-label="链路图图例">
 		<span><i class="legend-line main" aria-hidden="true"></i>主执行链</span>
 		<span><i class="legend-line tool" aria-hidden="true"></i>工具回环</span>
 		<span><i class="legend-line feedback" aria-hidden="true"></i>反馈与策略支路</span>
 	</div>
+		<button class="play-toggle" type="button" aria-pressed="true">暂停演示</button>
+	</div>
 
 	<div class="trace-shell">
-		<div class="trace-scroll" tabindex="0" aria-label="旅行 Agent 执行链路图，可横向滚动">
-			<svg class="trace-map" viewBox="0 0 960 420" role="img" aria-labelledby="trace-title trace-desc">
+		<div class="trace-scroll" tabindex="0" role="region" aria-label="旅行 Agent 执行链路图，可横向滚动">
+			<svg class="trace-map" viewBox="0 0 960 420" role="group" aria-labelledby="trace-title trace-desc">
 				<title id="trace-title">旅行 Agent 的单回合工具循环与跨回合反馈循环</title>
 				<desc id="trace-desc">用户消息先经过反馈分类、记忆检索与上下文组装。模型可以直接 Finish，也可以调用工具，并把 Observation 回灌给模型继续决策。回复写入会话状态，下一条用户反馈开始新回合；连续拒绝三次时，策略反思结果会注入上下文。</desc>
 				<defs>
 					<pattern id="trace-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(138,180,224,.17)" stroke-width="1"></path></pattern>
-					<filter id="trace-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
+					<filter id="trace-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.5" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
 					<marker id="arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#287fc3"></path></marker>
 					<marker id="arrow-tool" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5b7fba"></path></marker>
 					<marker id="arrow-feedback" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c9b76"></path></marker>
@@ -65,74 +68,133 @@ const routes = [
                     </g>
                 ))}
 
-				<g class="diagram-node active" data-node="input" data-index="01" data-title="新消息进入" data-detail="接收本轮旅行请求；后续消息也可能是对上一条推荐的反馈。" data-files="session_agent.py" tabindex="0" role="button" aria-label="01 新消息进入"><rect x="35" y="150" width="105" height="64" rx="14"></rect><text x="49" y="170" class="node-index">01 · INPUT</text><text x="88" y="193" class="node-label">新消息进入</text></g>
-				<g class="diagram-node" data-node="feedback" data-index="02" data-title="识别反馈类型" data-detail="把消息标记为 NONE、ACCEPT 或 REJECT；首次消息固定为 NONE。" data-files="session_agent.py · classify_feedback" tabindex="0" role="button" aria-label="02 反馈分类"><rect x="165" y="150" width="110" height="64" rx="14"></rect><text x="179" y="170" class="node-index">02 · ROUTE</text><text x="220" y="193" class="node-label">反馈分类</text></g>
-				<g class="diagram-node support-node" data-node="memory" data-index="03" data-title="检索 V0 记忆" data-detail="使用当前输入与最近会话历史检索用户偏好；每个用户回合只检索一次。" data-files="memory_store.py" tabindex="0" role="button" aria-label="03 检索 V0 记忆"><rect x="320" y="62" width="110" height="60" rx="14"></rect><text x="334" y="81" class="node-index">03 · MEMORY</text><text x="375" y="104" class="node-label">检索 V0 记忆</text></g>
-				<g class="diagram-node" data-node="context" data-index="04" data-title="组装本轮上下文" data-detail="合并系统提示词、长期记忆、最近 12 条消息与当前策略，不把记忆重复写入循环历史。" data-files="agent.py · prompts/travel_agent.md" tabindex="0" role="button" aria-label="04 组装上下文"><rect x="320" y="150" width="110" height="64" rx="14"></rect><text x="334" y="170" class="node-index">04 · CONTEXT</text><text x="375" y="193" class="node-label">组装上下文</text></g>
-				<g class="diagram-node decision-node" data-node="model" data-index="05" data-title="模型生成 Thought / Action" data-detail="模型在每一步选择注册工具或返回 Finish；单回合最多执行 5 步。" data-files="agent.py · llm_client.py" tabindex="0" role="button" aria-label="05 模型决策"><rect x="475" y="150" width="110" height="64" rx="14"></rect><text x="489" y="170" class="node-index">05 · DECIDE</text><text x="530" y="193" class="node-label">模型决策</text></g>
-				<g class="diagram-node" data-node="output" data-index="08" data-title="Finish 生成回复" data-detail="模型输出 Finish[最终答案] 后结束当前 Agent Loop，并返回可展示答案。" data-files="agent.py · parse_action" tabindex="0" role="button" aria-label="08 Finish 回复"><rect x="630" y="150" width="110" height="64" rx="14"></rect><text x="644" y="170" class="node-index">08 · FINISH</text><text x="685" y="193" class="node-label">生成回复</text></g>
-				<g class="diagram-node" data-node="session" data-index="09" data-title="更新 SessionState" data-detail="保存用户消息、回复、最近拒绝、策略版本与 last_recommendation，等待下一轮。" data-files="session_agent.py · SessionState" tabindex="0" role="button" aria-label="09 更新会话状态"><rect x="785" y="150" width="110" height="64" rx="14"></rect><text x="799" y="170" class="node-index">09 · SESSION</text><text x="840" y="193" class="node-label">更新会话</text></g>
-				<g class="diagram-node support-node" data-node="reflection" data-index="10" data-title="条件策略反思" data-detail="连续 3 次明确拒绝时总结可执行约束，先更新策略，再生成本轮新推荐。" data-files="session_agent.py · _reflect" tabindex="0" role="button" aria-label="10 条件策略反思"><rect x="320" y="280" width="110" height="60" rx="14"></rect><text x="334" y="299" class="node-index">10 · REFLECT</text><text x="375" y="322" class="node-label">策略反思</text></g>
-				<g class="diagram-node tool-node" transform="translate(-135 0)" data-node="tools" data-index="06" data-title="执行注册工具" data-detail="分发天气、景点、查票、备选与购票工具；购票要求用户明确确认。" data-files="tools.py · available_tools" tabindex="0" role="button" aria-label="06 执行注册工具"><rect x="610" y="280" width="110" height="60" rx="14"></rect><text x="624" y="299" class="node-index">06 · ACTION</text><text x="665" y="322" class="node-label">执行工具</text></g>
-				<g class="diagram-node tool-node" transform="translate(-125 0)" data-node="observation" data-index="07" data-title="Observation 回灌" data-detail="工具结果或解析错误被追加到本轮 prompt_history，再交给模型继续决策。" data-files="agent.py · run_agent" tabindex="0" role="button" aria-label="07 Observation 回灌"><rect x="755" y="280" width="110" height="60" rx="14"></rect><text x="769" y="299" class="node-index">07 · OBSERVE</text><text x="810" y="322" class="node-label">结果回灌</text></g>
+				<g class="diagram-node active" data-node="input" data-index="01" data-title="新消息进入" data-detail="接收本轮旅行请求；后续消息也可能是对上一条推荐的反馈。" data-files="session_agent.py" tabindex="0" role="button" aria-pressed="true" aria-label="01 新消息进入"><rect x="35" y="150" width="105" height="64" rx="6"></rect><text x="49" y="170" class="node-index">01 · INPUT</text><text x="88" y="193" class="node-label">新消息进入</text></g>
+				<g class="diagram-node" data-node="feedback" data-index="02" data-title="识别反馈类型" data-detail="把消息标记为 NONE、ACCEPT 或 REJECT；首次消息固定为 NONE。" data-files="session_agent.py · classify_feedback" tabindex="0" role="button" aria-pressed="false" aria-label="02 反馈分类"><rect x="165" y="150" width="110" height="64" rx="6"></rect><text x="179" y="170" class="node-index">02 · ROUTE</text><text x="220" y="193" class="node-label">反馈分类</text></g>
+				<g class="diagram-node support-node" data-node="memory" data-index="03" data-title="检索 V0 记忆" data-detail="使用当前输入与最近会话历史检索用户偏好；每个用户回合只检索一次。" data-files="memory_store.py" tabindex="0" role="button" aria-pressed="false" aria-label="03 检索 V0 记忆"><rect x="320" y="62" width="110" height="60" rx="6"></rect><text x="334" y="81" class="node-index">03 · MEMORY</text><text x="375" y="104" class="node-label">检索 V0 记忆</text></g>
+				<g class="diagram-node" data-node="context" data-index="04" data-title="组装本轮上下文" data-detail="合并系统提示词、长期记忆、最近 12 条消息与当前策略，不把记忆重复写入循环历史。" data-files="agent.py · prompts/travel_agent.md" tabindex="0" role="button" aria-pressed="false" aria-label="04 组装上下文"><rect x="320" y="150" width="110" height="64" rx="6"></rect><text x="334" y="170" class="node-index">04 · CONTEXT</text><text x="375" y="193" class="node-label">组装上下文</text></g>
+				<g class="diagram-node decision-node" data-node="model" data-index="05" data-title="模型生成 Thought / Action" data-detail="模型在每一步选择注册工具或返回 Finish；单回合最多执行 5 步。" data-files="agent.py · llm_client.py" tabindex="0" role="button" aria-pressed="false" aria-label="05 模型决策"><rect x="475" y="150" width="110" height="64" rx="6"></rect><text x="489" y="170" class="node-index">05 · DECIDE</text><text x="530" y="193" class="node-label">模型决策</text></g>
+				<g class="diagram-node" data-node="output" data-index="08" data-title="Finish 生成回复" data-detail="模型输出 Finish[最终答案] 后结束当前 Agent Loop，并返回可展示答案。" data-files="agent.py · parse_action" tabindex="0" role="button" aria-pressed="false" aria-label="08 Finish 回复"><rect x="630" y="150" width="110" height="64" rx="6"></rect><text x="644" y="170" class="node-index">08 · FINISH</text><text x="685" y="193" class="node-label">生成回复</text></g>
+				<g class="diagram-node" data-node="session" data-index="09" data-title="更新 SessionState" data-detail="保存用户消息、回复、最近拒绝、策略版本与 last_recommendation，等待下一轮。" data-files="session_agent.py · SessionState" tabindex="0" role="button" aria-pressed="false" aria-label="09 更新会话状态"><rect x="785" y="150" width="110" height="64" rx="6"></rect><text x="799" y="170" class="node-index">09 · SESSION</text><text x="840" y="193" class="node-label">更新会话</text></g>
+				<g class="diagram-node support-node" data-node="reflection" data-index="10" data-title="条件策略反思" data-detail="连续 3 次明确拒绝时总结可执行约束，先更新策略，再生成本轮新推荐。" data-files="session_agent.py · _reflect" tabindex="0" role="button" aria-pressed="false" aria-label="10 条件策略反思"><rect x="320" y="280" width="110" height="60" rx="6"></rect><text x="334" y="299" class="node-index">10 · REFLECT</text><text x="375" y="322" class="node-label">策略反思</text></g>
+				<g class="diagram-node tool-node" transform="translate(-135 0)" data-node="tools" data-index="06" data-title="执行注册工具" data-detail="分发天气、景点、查票、备选与购票工具；购票要求用户明确确认。" data-files="tools.py · available_tools" tabindex="0" role="button" aria-pressed="false" aria-label="06 执行注册工具"><rect x="610" y="280" width="110" height="60" rx="6"></rect><text x="624" y="299" class="node-index">06 · ACTION</text><text x="665" y="322" class="node-label">执行工具</text></g>
+				<g class="diagram-node tool-node" transform="translate(-125 0)" data-node="observation" data-index="07" data-title="Observation 回灌" data-detail="工具结果或解析错误被追加到本轮 prompt_history，再交给模型继续决策。" data-files="agent.py · run_agent" tabindex="0" role="button" aria-pressed="false" aria-label="07 Observation 回灌"><rect x="755" y="280" width="110" height="60" rx="6"></rect><text x="769" y="299" class="node-index">07 · OBSERVE</text><text x="810" y="322" class="node-label">结果回灌</text></g>
 			</svg>
 		</div>
 
-		<div class="trace-detail" aria-live="polite"><span class="detail-index" id="detail-index">01</span><div><strong id="detail-title">新消息进入</strong><p id="detail-copy">接收本轮旅行请求；后续消息也可能是对上一条推荐的反馈。</p></div><code id="detail-files">session_agent.py</code></div>
+		<div class="trace-detail" aria-live="off" aria-atomic="true"><span class="detail-index" id="detail-index">01</span><div><strong id="detail-title">新消息进入</strong><p id="detail-copy">接收本轮旅行请求；后续消息也可能是对上一条推荐的反馈。</p></div><code id="detail-files">session_agent.py</code></div>
 	</div>
 
 	<p class="trace-note"><strong>读图方式：</strong>蓝色是当前回合的必经主链，靛蓝色是模型与工具之间可重复的 Agent Loop，绿色是跨回合反馈；反思只在连续 3 次明确拒绝时触发。</p>
 </section>
 
 <script>
-	const order = ['input', 'feedback', 'memory', 'context', 'model', 'tools', 'observation', 'output', 'session', 'reflection'];
-	const nodes = [...document.querySelectorAll<SVGGElement>('.diagram-node')];
-	const detailIndex = document.querySelector('#detail-index');
-	const detailTitle = document.querySelector('#detail-title');
-	const detailCopy = document.querySelector('#detail-copy');
-	const detailFiles = document.querySelector('#detail-files');
-	const runLabel = document.querySelector('#run-label');
-	let current = 0;
-	const selectNode = (id: string, announce = true) => {
-		const node = nodes.find((item) => item.dataset.node === id);
-		if (!node || !detailIndex || !detailTitle || !detailCopy || !detailFiles) return;
-		current = order.indexOf(id);
-		nodes.forEach((item) => item.classList.toggle('active', item === node));
-		detailIndex.textContent = node.dataset.index ?? '';
-		detailTitle.textContent = node.dataset.title ?? '';
-		detailCopy.textContent = node.dataset.detail ?? '';
-		detailFiles.textContent = node.dataset.files ?? '';
-		if (announce && runLabel) runLabel.textContent = node.dataset.title ?? '';
-	};
-	nodes.forEach((node) => {
-		node.addEventListener('click', () => selectNode(node.dataset.node ?? ''));
-		node.addEventListener('keydown', (event) => {
-			if (event.key === 'Enter' || event.key === ' ') {
-				event.preventDefault();
-				selectNode(node.dataset.node ?? '');
-			}
-		});
-	});
-	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-		window.setInterval(() => selectNode(order[(current + 1) % order.length], false), 4000);
-	}
+    document.querySelectorAll<HTMLElement>('.project-lab').forEach((section) => {
+        const order = ['input', 'feedback', 'memory', 'context', 'model', 'tools', 'observation', 'output', 'session', 'reflection'];
+        const nodes = [...section.querySelectorAll<SVGGElement>('.diagram-node')];
+        const svg = section.querySelector<SVGSVGElement>('.trace-map')!;
+        const toggle = section.querySelector<HTMLButtonElement>('.play-toggle')!;
+        const detail = section.querySelector<HTMLElement>('.trace-detail')!;
+        const detailIndex = section.querySelector('#detail-index')!;
+        const detailTitle = section.querySelector('#detail-title')!;
+        const detailCopy = section.querySelector('#detail-copy')!;
+        const detailFiles = section.querySelector('#detail-files')!;
+        const runLabel = section.querySelector('#run-label')!;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let current = 0;
+        let playing = !reduced.matches;
+        let visible = false;
+        let timer: number | undefined;
+
+        const selectNode = (id: string, manual = false) => {
+            const node = nodes.find((item) => item.dataset.node === id);
+            if (!node) return;
+            if (manual) {
+                playing = false;
+                syncPlayback();
+            }
+            current = Math.max(0, order.indexOf(id));
+            nodes.forEach((item) => {
+                const selected = item === node;
+                item.classList.toggle('active', selected);
+                item.setAttribute('aria-pressed', String(selected));
+            });
+            detailIndex.textContent = node.dataset.index ?? '';
+            detailTitle.textContent = node.dataset.title ?? '';
+            detailCopy.textContent = node.dataset.detail ?? '';
+            detailFiles.textContent = node.dataset.files ?? '';
+            if (manual) runLabel.textContent = node.dataset.title ?? '';
+        };
+
+        const syncPlayback = () => {
+            const running = playing && visible && !document.hidden;
+            toggle.textContent = playing ? '暂停演示' : '播放演示';
+            toggle.setAttribute('aria-pressed', String(playing));
+            section.classList.toggle('is-paused', !running);
+            detail.setAttribute('aria-live', playing ? 'off' : 'polite');
+            if (running) {
+                svg.unpauseAnimations();
+                if (timer === undefined) {
+                    timer = window.setInterval(() => {
+                        selectNode(order[(current + 1) % order.length]);
+                    }, 4000);
+                }
+            } else {
+                svg.pauseAnimations();
+                if (timer !== undefined) {
+                    window.clearInterval(timer);
+                    timer = undefined;
+                }
+            }
+        };
+
+        nodes.forEach((node) => {
+            node.addEventListener('click', () => selectNode(node.dataset.node ?? '', true));
+            node.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    selectNode(node.dataset.node ?? '', true);
+                }
+            });
+        });
+        toggle.addEventListener('click', () => {
+            playing = !playing;
+            syncPlayback();
+        });
+        const observer = new IntersectionObserver((entries) => {
+            visible = entries[0].isIntersecting;
+            syncPlayback();
+        });
+        observer.observe(section);
+        document.addEventListener('visibilitychange', syncPlayback);
+        reduced.addEventListener('change', () => {
+            if (reduced.matches) playing = false;
+            syncPlayback();
+        });
+        window.addEventListener('pagehide', () => {
+            if (timer !== undefined) window.clearInterval(timer);
+            timer = undefined;
+            svg.pauseAnimations();
+        });
+        window.addEventListener('pageshow', syncPlayback);
+        syncPlayback();
+    });
 </script>
 
 <style>
-	.project-lab { width: 100%; max-width: 100%; min-width: 0; margin: 2.4rem 0; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.52); box-shadow: 0 16px 38px rgba(38,111,170,.08); }
+	.project-lab { width: 100%; max-width: 100%; min-width: 0; margin: 2.4rem 0; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: none; }
 	.lab-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; }
 	.eyebrow { margin: 0 0 .3rem; color: var(--accent); font-size: .66rem; font-weight: 700; letter-spacing: .16em; }
 	.lab-heading h2 { margin: 0; font-size: 1.55rem; }
 	.run-state { display: inline-flex; align-items: center; gap: .4rem; color: var(--muted); font-size: .7rem; white-space: nowrap; }
-	.run-dot { width: 7px; height: 7px; border-radius: 50%; background: #3c9b76; box-shadow: 0 0 0 4px rgba(60,155,118,.14); animation: blink 1.8s ease-in-out infinite; }
+	.run-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
 	.lab-summary { margin: 0 0 .9rem; color: var(--muted); font-size: .8rem; line-height: 1.65; }
-	.trace-legend { display: flex; flex-wrap: wrap; gap: .55rem 1rem; margin: 0 0 .7rem; color: var(--muted); font-size: .68rem; }
+	.trace-legend { display: flex; flex-wrap: wrap; gap: .55rem 1rem; margin: 0; color: var(--muted); font-size: .75rem; }
 	.trace-legend span { display: inline-flex; align-items: center; gap: .38rem; }
 	.legend-line { display: inline-block; width: 20px; height: 0; border-top: 2px solid; }
 	.legend-line.main { border-color: #287fc3; }
 	.legend-line.tool { border-color: #5b7fba; border-top-style: dashed; }
 	.legend-line.feedback { border-color: #3c9b76; border-top-style: dotted; }
-	.trace-shell { overflow: hidden; border: 1px solid rgba(138,180,224,.3); border-radius: 10px; background: rgba(245,250,255,.72); }
+	.trace-shell { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
 	.trace-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
 	.trace-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 	.trace-map { display: block; width: 100%; min-width: 820px; }
@@ -146,7 +208,7 @@ const routes = [
 	.tool-label { fill: #5b7fba; }
 	.feedback-label { fill: #3c9b76; }
 	.diagram-node { cursor: pointer; outline: none; }
-	.diagram-node rect { fill: rgba(255,255,255,.94); stroke: rgba(138,180,224,.68); stroke-width: 1.4; transition: fill .25s, stroke .25s, filter .25s; }
+	.diagram-node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.4; transition: fill .25s, stroke .25s, filter .25s; }
 	.diagram-node text { font-family: var(--font-atkinson); pointer-events: none; }
 	.node-index { fill: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .06em; }
 	.node-label { fill: var(--ink); font-size: 13px; font-weight: 700; text-anchor: middle; }
@@ -154,16 +216,50 @@ const routes = [
 	.tool-node rect { stroke: rgba(91,127,186,.7); }
 	.support-node rect { stroke: rgba(60,155,118,.62); }
 	.diagram-node:hover rect { fill: rgba(91,163,224,.1); }
-	.diagram-node.active rect, .diagram-node:focus rect { fill: rgba(91,163,224,.16); stroke: var(--accent); stroke-width: 2.4; filter: drop-shadow(0 0 6px rgba(40,127,195,.3)); }
-	.trace-detail { display: flex; align-items: center; gap: .7rem; min-height: 70px; padding: .7rem .9rem; border-top: 1px solid var(--line); background: rgba(255,255,255,.62); }
+	.diagram-node.active rect, .diagram-node:focus rect { fill: rgba(91,163,224,.16); stroke: var(--accent); stroke-width: 2.4; filter: none; }
+	.trace-detail { display: flex; align-items: center; gap: .7rem; min-height: 86px; padding: .7rem .9rem; border-top: 1px solid var(--line); background: var(--surface-alt); }
 	.detail-index { color: var(--accent); font-size: .7rem; font-weight: 700; }
 	.trace-detail div { min-width: 0; flex: 1; }
 	.trace-detail strong { font-size: .82rem; }
-	.trace-detail p { margin: .12rem 0 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
-	.trace-detail code { color: var(--accent-dark); font-size: .65rem; white-space: nowrap; }
+	.trace-detail p { margin: .12rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+	.trace-detail code { color: var(--accent-dark); font-size: .72rem; max-width: 38%; overflow-wrap: anywhere; }
 	.trace-note { margin: .75rem .15rem 0; color: var(--muted); font-size: .72rem; line-height: 1.55; }
 	.trace-note strong { color: var(--ink); }
 	@keyframes blink { 50% { opacity: .35; } }
 	@media (prefers-reduced-motion: reduce) { .trace-packets, .run-dot { display: none; animation: none; } }
-	@media (max-width: 700px) { .project-lab { padding: 1rem; } .lab-heading { display: block; } .lab-heading h2 { font-size: 1.3rem; } .run-state { margin-top: .5rem; } .trace-map { width: 820px; min-width: 820px; } .trace-detail { align-items: flex-start; flex-wrap: wrap; } .trace-detail code { width: 100%; margin-left: 1.4rem; white-space: normal; } }
+	@media (max-width: 700px) { .project-lab { padding: 1rem; } .lab-heading { display: block; } .lab-heading h2 { font-size: 1.3rem; } .run-state { margin-top: .5rem; } .trace-map { width: 820px; min-width: 820px; } .trace-detail { align-items: flex-start; flex-wrap: wrap; } .trace-detail code { width: 100%; max-width: 100%; margin-left: 1.4rem; white-space: normal; } }
+
+    .trace-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: .9rem;
+    }
+    .play-toggle {
+        flex-shrink: 0;
+        min-height: 44px;
+        padding: .4rem .8rem;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--accent-dark);
+        font-size: .78rem;
+    }
+    .play-toggle:hover {
+        border-color: var(--accent);
+        background: var(--surface-alt);
+    }
+    .is-paused .run-dot {
+        animation-play-state: paused;
+    }
+    @media (max-width: 560px) {
+        .trace-toolbar {
+            align-items: flex-start;
+            gap: .6rem;
+        }
+        .trace-detail {
+            min-height: 122px;
+        }
+    }
 </style>

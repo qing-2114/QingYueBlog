@@ -1,35 +1,43 @@
 ---
-import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
-const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+import { basePath } from '../utils/content';
 ---
-
+<a class="skip-link" href="#main-content">跳到正文</a>
 <header class="site-header">
-	<nav class="nav-shell" aria-label="主导航">
-		<a class="brand" href={base} aria-label="返回清月首页">{SITE_TITLE}</a>
-		<div class="internal-links">
-			<HeaderLink href="/">首页</HeaderLink>
-			<HeaderLink href="/blog">文章</HeaderLink>
-			<HeaderLink href="/projects">项目</HeaderLink>
-			<HeaderLink href="/about">关于我</HeaderLink>
-		</div>
-	</nav>
+  <nav class="nav-shell" aria-label="主导航">
+    <a class="brand" href={basePath} aria-label="清月博客首页">
+      <span class="brand-mark" aria-hidden="true">QY<span></span></span>
+      <span class="brand-name">清月<span>FIELD NOTES</span></span>
+    </a>
+    <div class="internal-links">
+      <HeaderLink href="/blog/">文章 <span>Writing</span></HeaderLink>
+      <HeaderLink href="/projects/">实验室 <span>Labs</span></HeaderLink>
+      <HeaderLink href="/about/">关于 <span>About</span></HeaderLink>
+    </div>
+    <a class="github-link" href="https://github.com/qing-2114" target="_blank" rel="noreferrer" aria-label="GitHub，打开新标签页">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-4 1-4-2-6-2m12 5v-3.4c0-1 .1-1.5-.5-2.1 3.2-.4 6.5-1.6 6.5-7a5.5 5.5 0 0 0-1.5-3.8 5 5 0 0 0-.1-3.7S17.2 1.6 15 3a13 13 0 0 0-6 0C6.8 1.6 5.1 2 5.1 2A5 5 0 0 0 5 5.7 5.5 5.5 0 0 0 3.5 9.5c0 5.4 3.3 6.6 6.5 7-.6.6-.5 1.4-.5 2.1V22"/></svg>
+      <span>GitHub ↗</span>
+    </a>
+  </nav>
 </header>
+<script>
+  // Pages without a dedicated shell still receive the skip-link target.
+  const main = document.querySelector('main');
+  if (main && !main.id) main.id = 'main-content';
+</script>
 <style>
-	.site-header { position: sticky; top: .8rem; z-index: 10; padding: 0 1rem; }
-	.nav-shell { position: relative; width: min(1080px, 100%); margin: auto; padding: .65rem .8rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #f8fbff; border: 1px solid rgba(138,180,224,.28); border-radius: 12px; box-shadow: 0 10px 28px rgba(47,117,181,.10); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
-	.brand { display: inline-flex; align-items: center; color: var(--ink); font-weight: 700; letter-spacing: .01em; text-decoration: none; white-space: nowrap; }
-	.internal-links { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: .25rem; }
-	.internal-links :global(a) { padding: .48rem .75rem; color: var(--muted); border-radius: 8px; font-size: .9rem; text-decoration: none; white-space: nowrap; }
-	.internal-links :global(a:hover), .internal-links :global(a.active) { color: var(--accent); background: rgba(91,163,224,.12); }
-	@media (max-width: 720px) {
-		.nav-shell { padding: .55rem; }
-		.internal-links { position: static; margin: auto; transform: none; }
-		.internal-links :global(a) { padding-inline: .55rem; }
-	}
-	@media (max-width: 520px) {
-		.nav-shell { flex-direction: column; gap: .15rem; }
-		.internal-links { margin: 0; justify-content: center; width: 100%; }
-		.internal-links :global(a) { padding: .35rem .75rem; }
-	}
+  .site-header { position: sticky; top: 0; z-index: 30; background: var(--paper); border-bottom: 1px solid var(--line); }
+  .nav-shell { display: flex; align-items: center; justify-content: space-between; width: min(1184px, calc(100% - 80px)); min-height: 88px; margin: auto; gap: 2rem; }
+  .brand { display: inline-flex; align-items: center; gap: .75rem; color: var(--ink); text-decoration: none; }
+  .brand-mark { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--ink); font-family: var(--font-mono); font-size: .85rem; letter-spacing: -.08em; }
+  .brand-mark span { position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px; background: var(--accent); border: 2px solid var(--paper); }
+  .brand-name { font-family: var(--font-display); font-size: 1.4rem; line-height: 1.2; font-weight: 700; }
+  .brand-name > span { display: block; margin-top: .3rem; font-family: var(--font-mono); font-size: .5rem; letter-spacing: .12em; font-weight: 400; }
+  .internal-links { display: flex; gap: 2rem; }
+  .internal-links :global(a) { display: flex; align-items: center; gap: .4rem; min-height: 44px; color: var(--muted); font-size: .85rem; text-decoration: none; border-bottom: 2px solid transparent; }
+  .internal-links :global(a span) { font-size: .7rem; }
+  .internal-links :global(a.active), .internal-links :global(a:hover) { color: var(--ink); border-color: var(--accent); }
+  .github-link { display: inline-flex; align-items: center; min-height: 44px; gap: .5rem; color: var(--ink); font-size: .75rem; text-decoration: none; }
+  @media (max-width: 900px) { .nav-shell { width: calc(100% - 48px); gap: 1.2rem; } .internal-links { gap: 1.3rem; } }
+  @media (max-width: 600px) { .nav-shell { width: calc(100% - 40px); min-height: 76px; gap: 1rem; } .brand-name > span, .internal-links :global(a span), .github-link span { display: none; } .brand-mark { width: 32px; height: 32px; font-size: .7rem; } .brand-name { font-size: 1.2rem; } .brand { gap: .4rem; } .internal-links { gap: .9rem; margin-left: auto; } .internal-links :global(a) { font-size: .8rem; } .github-link { display: none; } }
 </style>

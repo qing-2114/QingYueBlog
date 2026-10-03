@@ -1,61 +1,255 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import ExperimentFlow from '../../components/ExperimentFlow.astro';
+import { langGraphFlow } from '../../data/experiment-flows';
+import workbench from '../../assets/grok-build-web/workbench.png';
+import { SITE_TITLE } from '../../consts';
 
-const projects = (await getCollection('projects')).sort((a, b) => b.data.startDate.valueOf() - a.data.startDate.valueOf());
-const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const projects = (await getCollection('projects')).sort(
+    (a, b) => b.data.startDate.valueOf() - a.data.startDate.valueOf(),
+);
+const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
+const formatDate = (date: Date) => date.toLocaleDateString('zh-CN');
 ---
 
 <!doctype html>
 <html lang="zh-CN">
-	<head><BaseHead title={`项目 · ${SITE_TITLE}`} description="清月正在进行与已完成的项目记录。" /></head>
-	<body>
-		<Header />
-		<main>
-			<section class="projects-intro">
-				<div><p class="eyebrow">PROJECTS</p><h1>项目</h1></div>
-				<p>把正在构建的东西放到一个可以持续更新的地方。这里记录目标、代码边界、阶段变化和可验证的实验结果。</p>
-			</section>
-			<div class="status-line"><span><strong>{projects.length}</strong> 个项目记录</span><span>按最近开始时间排列</span></div>
-			<section class="project-grid" aria-label="项目列表">
-				{projects.map((project) => (
-					<a class="project-card" href={`${base}projects/${project.id}/`}>
-						<div class="card-top"><span class:list={['status', project.data.status]}><i aria-hidden="true"></i>{project.data.statusLabel}</span><span class="project-date">始于 {project.data.startDate.toLocaleDateString('zh-CN')}</span></div>
-						<h2>{project.data.title}</h2><p>{project.data.description}</p>
-						<div class="card-bottom"><div class="tags">{project.data.tags.slice(0, 3).map((tag) => <span>#{tag}</span>)}</div><span class="arrow">查看档案 →</span></div>
-					</a>
-				))}
-			</section>
-		</main>
-		<Footer />
-	</body>
+    <head>
+        <BaseHead title={`实验与项目 · ${SITE_TITLE}`} description="清月的 Agent 实验、开发项目与持续更新的实践记录。" />
+    </head>
+    <body>
+        <Header />
+        <main id="main-content" class="projects-page">
+            <header class="page-intro">
+                <p class="eyebrow">LABS / 工程实验室</p>
+                <h1>把想法，<br />做成可以运行的东西。</h1>
+                <div class="intro-bottom">
+                    <p>从智能体的执行链路，到本地工作台的产品界面。这里保留每个项目的目标、过程与阶段记录。</p>
+                    <span class="project-count">{String(projects.length).padStart(2, '0')} <span>个项目档案</span></span>
+                </div>
+            </header>
+
+            <section class="project-list" aria-label="项目档案">
+                {projects.map((project, index) => (
+                    <article class="project-entry">
+                        <div class="project-information">
+                            <div class="entry-kicker">
+                                <span class="entry-number">{String(index + 1).padStart(2, '0')}</span>
+                                <span>{project.id === 'my-hello-agent' ? 'AGENT EXPERIMENTS / 智能体实验' : 'PRODUCT STUDY / 产品实践'}</span>
+                            </div>
+                            <h2><a href={`${base}projects/${project.id}/`}>{project.data.title}</a></h2>
+                            <p class="description">{project.data.description}</p>
+                            <div class="entry-meta">
+                                <span class:list={['status', project.data.status]}><i aria-hidden="true"></i>{project.data.statusLabel}</span>
+                                <span>更新于 {formatDate(project.data.updatedDate ?? project.data.startDate)}</span>
+                            </div>
+                            <ul class="tags" aria-label="项目技术标签">
+                                {project.data.tags.slice(0, 5).map((tag) => <li>{tag}</li>)}
+                            </ul>
+                            <a class="project-link" href={`${base}projects/${project.id}/`}>
+                                {project.id === 'my-hello-agent' ? '探索实验链路' : '查看项目档案'} <span aria-hidden="true">↗</span>
+                            </a>
+                        </div>
+                        {project.id === 'grok-build-web' ? (
+                            <a class="project-preview" href={`${base}projects/${project.id}/`} aria-label="查看 Grok Build Web 项目">
+                                <Image src={workbench} alt="Grok Build Web 的项目栏、流式对话与底部输入坞" width={960} loading="lazy" />
+                                <span class="preview-caption">界面实录 · 本地 Web 工作台 <span aria-hidden="true">↗</span></span>
+                            </a>
+                        ) : project.id === 'my-hello-agent' ? (
+                            <div class="experiment-preview">
+                                <ExperimentFlow flow={langGraphFlow} />
+                            </div>
+                        ) : null}
+                    </article>
+                ))}
+            </section>
+            <p class="lab-footnote">项目会随实践更新。流程演示、实现状态与验证记录，以各项目档案中的说明为准。</p>
+        </main>
+        <Footer />
+    </body>
 </html>
 
 <style>
-	main { padding-top: 4rem; }
-	.projects-intro { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: 2rem; }
-	.eyebrow { margin: 0 0 .55rem; color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
-	.projects-intro h1 { margin: 0; font-size: clamp(2.4rem, 6vw, 4rem); }
-	.projects-intro > p { max-width: 31rem; margin: 0 0 .35rem; color: var(--muted); font-size: .96rem; }
-	.status-line { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .85rem; color: var(--muted); font-size: .8rem; }
-	.status-line strong { color: var(--ink); }
-	.project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
-	.project-card { display: flex; min-height: 250px; flex-direction: column; padding: 1.35rem; color: inherit; background: rgba(255,255,255,.68); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(38,111,170,.06); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-	.project-card:hover { border-color: rgba(40,127,195,.35); box-shadow: var(--box-shadow); transform: translateY(-4px); }
-	.card-top, .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: .7rem; }
-	.status { display: inline-flex; align-items: center; gap: .38rem; color: var(--accent-dark); font-size: .75rem; font-weight: 700; }
-	.status i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-	.status.completed i { background: #3c9b76; }
-	.status.paused i { background: #d58c4c; }
-	.project-date { color: var(--muted); font-size: .72rem; }
-	.project-card h2 { margin: 2.4rem 0 .65rem; font-size: 1.45rem; }
-	.project-card p { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.65; }
-	.card-bottom { margin-top: auto; padding-top: 1.4rem; }
-	.tags { display: flex; flex-wrap: wrap; gap: .35rem; color: var(--muted); font-size: .72rem; }
-	.tags span { padding: .15rem .4rem; background: rgba(91,163,224,.1); border-radius: 999px; }
-	.arrow { color: var(--accent); font-size: .78rem; white-space: nowrap; }
-	@media (max-width: 620px) { main { padding-top: 3rem; } .projects-intro { display: block; } .projects-intro > p { margin-top: 1rem; } .status-line { align-items: start; flex-direction: column; gap: .2rem; } }
+    .projects-page {
+        padding-top: clamp(3rem, 7vw, 6rem);
+    }
+    .page-intro {
+        padding-bottom: 3.5rem;
+    }
+    .eyebrow, .entry-kicker {
+        color: var(--accent);
+        font-family: var(--font-mono, monospace);
+        font-size: .75rem;
+        letter-spacing: .09em;
+    }
+    .eyebrow {
+        margin-bottom: 1.4rem;
+    }
+    .page-intro h1 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        margin: 0 0 2rem;
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        line-height: 1.5;
+        letter-spacing: -.04em;
+    }
+    .intro-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 2rem;
+    }
+    .intro-bottom p {
+        max-width: 36rem;
+        margin: 0;
+        color: var(--muted);
+    }
+    .project-count {
+        flex-shrink: 0;
+        color: var(--ink);
+        font-family: var(--font-mono, monospace);
+        font-size: 2.3rem;
+        line-height: 1;
+    }
+    .project-count span {
+        margin-left: .5rem;
+        color: var(--muted);
+        font-size: .8rem;
+    }
+    .project-entry {
+        display: grid;
+        grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+        align-items: center;
+        gap: clamp(2rem, 4vw, 4rem);
+        padding: 3rem 0;
+        border-top: 1px solid var(--line);
+    }
+    .entry-kicker {
+        display: flex;
+        gap: .9rem;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        font-size: .7rem;
+    }
+    .entry-number {
+        color: var(--muted);
+    }
+    .project-entry h2 {
+        margin: 0 0 1rem;
+        font-size: clamp(1.7rem, 3vw, 2.5rem);
+        letter-spacing: -.03em;
+    }
+    .project-entry h2 a {
+        color: var(--ink);
+        text-decoration: none;
+    }
+    .project-entry h2 a:hover {
+        color: var(--accent);
+    }
+    .description {
+        color: var(--muted);
+        font-size: .95rem;
+        line-height: 1.85;
+    }
+    .entry-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 1.5rem 0 1rem;
+        color: var(--muted);
+        font-size: .78rem;
+    }
+    .status {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        color: var(--ink);
+    }
+    .status i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+    }
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin: 0 0 1.4rem;
+        padding: 0;
+        list-style: none;
+    }
+    .tags li {
+        padding: .2rem .5rem;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        color: var(--muted);
+        font-size: .72rem;
+    }
+    .project-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 1.5rem;
+        min-height: 44px;
+        color: var(--accent);
+        font-size: .88rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .project-preview {
+        display: block;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius, 6px);
+        background: var(--surface, white);
+        color: var(--muted);
+        text-decoration: none;
+    }
+    .project-preview :global(img) {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 0;
+    }
+    .preview-caption {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 1.2rem;
+        border-top: 1px solid var(--line);
+        font-size: .78rem;
+    }
+    .experiment-preview {
+        min-width: 0;
+    }
+    .experiment-preview :global(.experiment-flow) {
+        margin: 0;
+    }
+    .lab-footnote {
+        margin: 1rem 0 0;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: .8rem;
+    }
+    @media (max-width: 840px) {
+        .project-entry {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+    @media (max-width: 560px) {
+        .intro-bottom {
+            align-items: start;
+            flex-direction: column;
+        }
+        .page-intro {
+            padding-bottom: 2rem;
+        }
+        .project-entry {
+            padding: 2rem 0;
+        }
+    }
 </style>

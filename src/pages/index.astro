@@ -1,60 +1,132 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import ArticlePreview from '../components/ArticlePreview.astro';
+import ExperimentFlow from '../components/ExperimentFlow.astro';
+import { planFlow } from '../data/experiment-flows';
+import workbench from '../assets/grok-build-web/workbench.png';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { articleCover, basePath, byDate, readingMinutes, topics, topicHref } from '../utils/content';
 
-const posts = (await getCollection('blog')).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);
-const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const posts = (await getCollection('blog')).sort(byDate);
+const projects = await getCollection('projects');
+const latest = posts[0];
+const latestCover = latest && articleCover(latest);
+const agentProject = projects.find((project) => project.id === 'my-hello-agent');
+const productProject = projects.find((project) => project.id === 'grok-build-web');
 ---
-
 <!doctype html>
 <html lang="zh-CN">
-	<head><BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} /></head>
-	<body>
-		<Header />
-		<main>
-			<section class="hero">
-				<p class="eyebrow">PERSONAL JOURNAL</p>
-				<h1 class="script-title">QingYue Blog</h1>
-				<p class="intro calligraphy-intro">这里是我的数字小屋，记录技术探索、日常思考，以及那些值得慢慢写下来的瞬间。</p>
-				<div class="actions"><a class="button primary" href={`${base}blog`}>阅读文章 <span>→</span></a><a class="button ghost" href={`${base}about`}>认识清月</a></div>
-			</section>
+  <head><BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} /></head>
+  <body>
+    <Header />
+    <main class="home" id="main-content">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="small-cross" aria-hidden="true">+</span> QINGYUE / PERSONAL ENGINEERING LAB</p>
+          <h1 id="hero-title">让想法落地，<br />让探索<span class="blue">留下痕迹。</span></h1>
+          <p class="hero-intro">你好，我是清月。<br />在 AI、机器人与代码之间，把好奇心变成可以运行的实验，也把过程写成值得回看的记录。</p>
+          <div class="hero-actions">
+            <a class="button primary" href={`${basePath}blog/`}>从一篇文章开始 <span aria-hidden="true">↗</span></a>
+            <a class="text-link" href={`${basePath}projects/`}>看看我在做什么 <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="hero-footnote"><span>THINK / BUILD / DOCUMENT</span><span>{posts.length} 篇文章 · {projects.length} 个项目</span></div>
+        </div>
+        {latest && <article class="hero-note">
+          <div class="note-header"><span>最近的一页</span><span class="note-number">NOTE / {String(posts.length).padStart(3, '0')}</span></div>
+          <a href={`${basePath}blog/${latest.id}/`} class="note-image" tabindex="-1" aria-hidden="true">
+            {latestCover && <Image src={latestCover} alt="" width={800} height={560} widths={[400,800]} sizes="(max-width: 760px) 100vw, 40vw" loading="eager" />}
+          </a>
+          <div class="note-copy">
+            <div class="article-meta"><span>{latest.data.category}</span><FormattedDate date={latest.data.pubDate} /><span>约 {readingMinutes(latest.body)} 分钟</span></div>
+            <h2><a href={`${basePath}blog/${latest.id}/`}>{latest.data.title}</a></h2>
+            <a class="text-link" href={`${basePath}blog/${latest.id}/`}>翻开这篇记录 <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>}
+      </section>
 
-			<section class="latest" aria-labelledby="latest-title">
-				<div class="section-heading"><div><p class="eyebrow">FROM THE JOURNAL</p><h2 id="latest-title">最近写了什么</h2></div><a href={`${base}blog`}>查看全部 →</a></div>
-				<div class="post-grid">
-					{posts.map((post) => <a class="post-card" href={`${base}blog/${post.id}/`}><p class="date"><FormattedDate date={post.data.pubDate} /></p><h3>{post.data.title}</h3><p class="description">{post.data.description}</p><span class="read-more">继续阅读 →</span></a>)}
-				</div>
-			</section>
-		</main>
-		<Footer />
-	</body>
+      <nav class="topic-strip" aria-label="按主题阅读">
+        {topics.map((topic) => <a href={topicHref(topic.category)}>
+          <span class="topic-index">{topic.index}</span>
+          <div><strong>{topic.label}</strong><small>{topic.subtitle}</small></div>
+          <span class="topic-count">{posts.filter((post) => post.data.category === topic.category).length.toString().padStart(2, '0')} <span aria-hidden="true">↗</span></span>
+        </a>)}
+      </nav>
+
+      <section class="writing-section" aria-labelledby="writing-title">
+        <div class="section-heading"><div><p class="eyebrow">01 / FIELD NOTES</p><h2 id="writing-title">写下来的思考</h2></div><a class="text-link" href={`${basePath}blog/`}>全部文章 <span aria-hidden="true">↗</span></a></div>
+        <div class="articles-grid">{posts.slice(1, 4).map((post) => <ArticlePreview post={post} />)}</div>
+      </section>
+
+      {agentProject && <section class="lab-section" aria-labelledby="lab-title">
+        <div class="section-heading"><div><p class="eyebrow">02 / EXPERIMENT IN PROGRESS</p><h2 id="lab-title">在运行中理解</h2></div><a class="text-link" href={`${basePath}projects/my-hello-agent/`}>进入实验室 <span aria-hidden="true">↗</span></a></div>
+        <div class="lab-intro"><div><span class="lab-label">{agentProject.data.statusLabel} / {agentProject.data.title}</span><p>从一个问题出发，观察规划、求解与回环。<br />点击流程节点，看看代码真正做了什么。</p></div><span class="lab-reference">HELLO AGENTS<br />PLAN-AND-SOLVE</span></div>
+        <ExperimentFlow flow={planFlow} />
+      </section>}
+
+      {productProject && <section class="product-section" aria-labelledby="product-title">
+        <div class="section-heading"><div><p class="eyebrow">03 / BUILT WITH CURIOSITY</p><h2 id="product-title">从代码到界面</h2></div><a class="text-link" href={`${basePath}projects/`}>全部项目 <span aria-hidden="true">↗</span></a></div>
+        <div class="product-grid">
+          <a class="product-image" href={`${basePath}projects/${productProject.id}/`} tabindex="-1" aria-hidden="true"><Image src={workbench} alt="" width={1100} widths={[550,1100]} sizes="(max-width: 760px) 100vw, 60vw" loading="lazy" /></a>
+          <div class="product-copy"><p class="eyebrow">LOCAL WEB WORKBENCH</p><h3>{productProject.data.title}</h3><p>{productProject.data.description}</p><div class="product-tags">{productProject.data.tags.slice(0,4).map((tag) => <span>{tag}</span>)}</div><a class="text-link" href={`${basePath}projects/${productProject.id}/`}>查看项目档案 <span aria-hidden="true">↗</span></a></div>
+        </div>
+      </section>}
+      <section class="personal-note" aria-label="关于这个博客"><p>这里是一间持续开放的数字工作室。<br /><span>有想通的事，也有还在调试的想法。</span></p><a class="text-link" href={`${basePath}about/`}>认识清月 <span aria-hidden="true">↗</span></a></section>
+    </main>
+    <Footer />
+  </body>
 </html>
-
 <style>
-	.hero { max-width: 760px; padding: 5rem 0 7rem; }
-	.eyebrow { margin-bottom: 1rem; color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
-	.script-title { margin-left: -.08em; color: #18334d; filter: drop-shadow(0 8px 10px rgba(24,51,77,.12)); font-family: "Pinyon Script", "Great Vibes", "Segoe Script", "Lucida Handwriting", "Brush Script MT", cursive; font-size: clamp(4.4rem, 12vw, 8.4rem); font-weight: 400; letter-spacing: .015em; line-height: .95; }
-	.intro { max-width: 580px; margin: 1.5rem 0 2rem; color: var(--muted); font-size: 1.14rem; }
-	.calligraphy-intro { color: #30465a; font-family: "SimSun", "宋体", "STSong", "Songti SC", serif; font-size: clamp(1.12rem, 2.2vw, 1.28rem); font-weight: 400; letter-spacing: .04em; line-height: 1.9; -webkit-text-stroke: .1px currentColor; }
-	.actions { display: flex; gap: .7rem; flex-wrap: wrap; }
-	.button { padding: .65rem 1rem; border-radius: 9px; font-size: .9rem; text-decoration: none; transition: transform .2s, box-shadow .2s; }
-	.button:hover { transform: translateY(-2px); }
-	.primary { color: #fff; background: linear-gradient(135deg, #4b9cda, #287fc3); box-shadow: 0 8px 18px rgba(40,127,195,.25); }
-	.ghost { color: var(--accent); border: 1px solid var(--line); background: rgba(255,255,255,.48); }
-	.latest { padding-bottom: 2rem; }
-	.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; }
-	.section-heading h2 { margin: 0; }
-	.section-heading > a { font-size: .86rem; text-decoration: none; }
-	.post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-	.post-card { display: flex; min-height: 220px; flex-direction: column; padding: 1.25rem; color: inherit; background: rgba(255,255,255,.62); border: 1px solid var(--line); border-radius: 11px; box-shadow: 0 8px 24px rgba(38,111,170,.06); text-decoration: none; backdrop-filter: blur(14px); transition: transform .2s, box-shadow .2s; }
-	.post-card:hover { transform: translateY(-4px); box-shadow: var(--box-shadow); }
-	.post-card .date { color: var(--accent); font-size: .76rem; }
-	.post-card h3 { margin-bottom: .6rem; font-size: 1.25rem; }
-	.description { color: var(--muted); font-size: .9rem; line-height: 1.55; }
-	.read-more { margin-top: auto; color: var(--accent); font-size: .82rem; }
-	@media (max-width: 720px) { .hero { padding: 3rem 0 5rem; } .post-grid { grid-template-columns: 1fr; } .section-heading { align-items: start; flex-direction: column; } }
+  .home { padding-top: 56px; }
+  .hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(40px, 6vw, 80px); align-items: center; padding: 16px 0 64px; }
+  .small-cross { margin-right: .5rem; color: var(--accent); }
+  .hero h1 { margin: 1.8rem 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(2.5rem, 4.7vw, 4.25rem); line-height: 1.55; letter-spacing: -.04em; }
+  .blue { color: var(--accent); }
+  .hero-intro { color: var(--muted); max-width: 30rem; line-height: 2; font-size: .98rem; }
+  .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; margin-top: 2rem; }
+  .hero-footnote { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding-top: 2rem; margin-top: 3rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .7rem; }
+  .hero-footnote > span:first-child { font-family: var(--font-mono); letter-spacing: .05em; }
+  .hero-note { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .note-header { display: flex; justify-content: space-between; padding: .8rem 1.3rem; color: var(--muted); font-size: .7rem; border-bottom: 1px solid var(--line); }
+  .note-number { font-family: var(--font-mono); }
+  .note-image { display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--surface-alt); }
+  .note-image :global(img) { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+  .note-copy { padding: 1.4rem 1.5rem .8rem; }
+  .note-copy h2 { font-size: 1.4rem; line-height: 1.5; }
+  .note-copy h2 a { color: var(--ink); text-decoration: none; }
+  .note-copy h2 a:hover { color: var(--accent); }
+  .topic-strip { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .topic-strip a { display: flex; align-items: start; gap: .6rem; padding: 1.5rem 1.25rem; border-right: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+  .topic-strip a:first-child { padding-left: 0; }
+  .topic-strip a:last-child { border-right: 0; padding-right: 0; }
+  .topic-strip a:hover { background: var(--surface); }
+  .topic-index { font-family: var(--font-mono); font-size: .65rem; color: var(--accent); padding-top: .3rem; }
+  .topic-strip strong { display: block; font-size: .9rem; font-weight: 400; }
+  .topic-strip small { display: block; margin-top: .2rem; color: var(--muted); font-size: .65rem; }
+  .topic-count { margin-left: auto; color: var(--muted); font-size: .7rem; white-space: nowrap; }
+  .writing-section, .lab-section, .product-section { padding-top: 72px; }
+  .articles-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 32px; }
+  .lab-section { margin-top: 64px; padding-top: 64px; border-top: 1px solid var(--line); }
+  .lab-intro { display: flex; justify-content: space-between; gap: 2rem; }
+  .lab-label { color: var(--accent); font-size: .8rem; }
+  .lab-intro p { margin: .6rem 0 0; color: var(--muted); font-size: .9rem; line-height: 1.9; }
+  .lab-reference { font-family: var(--font-mono); font-size: .65rem; color: var(--muted); text-align: right; }
+  .lab-section :global(.experiment-flow) { background: var(--surface); border-radius: var(--radius); box-shadow: none; margin: 1.5rem 0 0; }
+  .product-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; align-items: center; }
+  .product-image { display: block; padding: 1.2rem; background: #e5e8e5; border: 1px solid var(--line); border-radius: var(--radius); }
+  .product-image :global(img) { width: 100%; }
+  .product-copy h3 { font-size: 2rem; letter-spacing: -.04em; }
+  .product-copy > p:not(.eyebrow) { color: var(--muted); font-size: .92rem; }
+  .product-tags { display: flex; flex-wrap: wrap; gap: .45rem; margin: 1.2rem 0; }
+  .product-tags span { padding: .15rem .5rem; border: 1px solid var(--line); font-family: var(--font-mono); font-size: .65rem; border-radius: 3px; }
+  .personal-note { display: flex; justify-content: space-between; align-items: center; gap: 2rem; margin-top: 80px; padding: 48px 0 0; border-top: 1px solid var(--line); }
+  .personal-note p { font-family: var(--font-display); font-size: 1.6rem; margin: 0; line-height: 1.8; }
+  .personal-note p span { color: var(--muted); }
+  @media (max-width: 1000px) { .topic-strip { grid-template-columns: repeat(2,minmax(0,1fr)); } .topic-strip a:nth-child(2) { border-right: 0; } .topic-strip a:nth-child(-n+2) { border-bottom: 1px solid var(--line); } .topic-strip a:nth-child(3) { padding-left: 0; } .hero { gap: 32px; } .hero h1 { font-size: 2.7rem; } .product-grid { gap: 32px; } }
+  @media (max-width: 760px) { .home { padding-top: 32px; } .hero { grid-template-columns: 1fr; padding-bottom: 40px; gap: 40px; } .hero h1 { font-size: clamp(2.5rem,8vw,3.3rem); margin: 1rem 0; } .hero-footnote { margin-top: 1.5rem; padding-top: 1rem; } .hero-actions { margin-top: 1.2rem; gap: 1rem; } .note-image { aspect-ratio: 16 / 9; } .articles-grid { grid-template-columns: 1fr; gap: 40px; } .writing-section, .product-section { padding-top: 48px; } .lab-section { margin-top: 40px; padding-top: 40px; } .product-grid { grid-template-columns: 1fr; gap: 24px; } .personal-note { margin-top: 48px; padding-top: 32px; align-items: start; flex-direction: column; gap: 1rem; } .personal-note p { font-size: 1.35rem; } .lab-reference { display: none; } }
+  @media (max-width: 420px) { .topic-strip a { padding: 1rem .6rem; gap: .4rem; } .topic-strip small { max-width: 105px; } .topic-count { font-size: .65rem; } .hero .eyebrow { font-size: .6rem; letter-spacing: .04em; } }
 </style>

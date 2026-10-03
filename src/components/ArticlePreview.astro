@@ -1,0 +1,40 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+import { articleCover, basePath, readingMinutes } from '../utils/content';
+
+interface Props { post: CollectionEntry<'blog'>; compact?: boolean; }
+const { post, compact = false } = Astro.props;
+const cover = articleCover(post);
+const Heading = compact ? 'h2' : 'h3';
+---
+<article class:list={['article-preview', { compact }]}>
+  <a class="cover" href={`${basePath}blog/${post.id}/`} tabindex="-1" aria-hidden="true">
+    {cover ? <Image src={cover} alt="" width={720} height={450} widths={[360, 720]} sizes={compact ? '(max-width: 720px) 100vw, 230px' : '(max-width: 720px) 100vw, 33vw'} loading="lazy" /> : <span class="cover-type">FIELD NOTES</span>}
+  </a>
+  <div class="preview-copy">
+    <div class="article-meta"><span>{post.data.category}</span><FormattedDate date={post.data.pubDate} /></div>
+    <Heading><a href={`${basePath}blog/${post.id}/`}>{post.data.title}</a></Heading>
+    <p>{post.data.description}</p>
+    <div class="preview-bottom"><span>约 {readingMinutes(post.body)} 分钟</span><a href={`${basePath}blog/${post.id}/`} aria-label={`阅读：${post.data.title}`}>阅读全文 <span aria-hidden="true">↗</span></a></div>
+  </div>
+</article>
+<style>
+  .article-preview { display: flex; flex-direction: column; min-width: 0; }
+  .cover { display: grid; overflow: hidden; aspect-ratio: 16 / 10; background: var(--surface-alt); border: 1px solid var(--line); border-radius: var(--radius); place-items: center; }
+  .cover :global(img) { width: 100%; height: 100%; object-fit: cover; border-radius: 0; transition: transform var(--motion-slow); }
+  .article-preview:hover .cover :global(img) { transform: scale(1.025); }
+  .cover-type { color: var(--accent); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .2em; }
+  .preview-copy { display: flex; flex: 1; flex-direction: column; padding: 1.25rem 0 0; }
+  h2, h3 { font-size: 1.35rem; line-height: 1.5; letter-spacing: -.02em; }
+  h2 a, h3 a { color: var(--ink); text-decoration: none; }
+  h2 a:hover, h3 a:hover { color: var(--accent); }
+  p { color: var(--muted); font-size: .9rem; line-height: 1.8; }
+  .preview-bottom { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: .7rem; margin-top: auto; color: var(--muted); font-size: .75rem; }
+  .preview-bottom a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; gap: .5rem; }
+  .compact { display: grid; grid-template-columns: 230px minmax(0, 1fr); align-items: start; gap: 1.6rem; }
+  .compact .preview-copy { padding-top: 0; }
+  .compact .article-meta { margin-bottom: .6rem; }
+  @media (max-width: 720px) { .compact { grid-template-columns: 1fr; gap: 0; } .compact .preview-copy { padding-top: 1rem; } h2, h3 { font-size: 1.3rem; } }
+</style>

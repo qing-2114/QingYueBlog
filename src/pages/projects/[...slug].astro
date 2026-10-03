@@ -6,64 +6,362 @@ import Header from '../../components/Header.astro';
 import ProjectLab from '../../components/ProjectLab.astro';
 import ReActLab from '../../components/ReActLab.astro';
 import ExperimentFlow from '../../components/ExperimentFlow.astro';
-import { agentScopeFlow, autoGenFlow, camelFlow, langGraphFlow, myLlmFlow, myReActAgentFlow, myReflectionAgentFlow, mySimpleAgentFlow, planFlow, reflectionFlow } from '../../data/experiment-flows';
+import {
+    agentScopeFlow,
+    autoGenFlow,
+    camelFlow,
+    langGraphFlow,
+    myLlmFlow,
+    myReActAgentFlow,
+    myReflectionAgentFlow,
+    mySimpleAgentFlow,
+    planFlow,
+    reflectionFlow,
+} from '../../data/experiment-flows';
 
 export async function getStaticPaths() {
-	const projects = await getCollection('projects');
-	return projects.map((project) => ({ params: { slug: project.id }, props: project }));
+    const projects = await getCollection('projects');
+    return projects.map((project) => ({ params: { slug: project.id }, props: project }));
 }
 
 type Props = CollectionEntry<'projects'>;
 const project = Astro.props;
-const { Content } = await render(project);
-const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const { Content, headings } = await render(project);
+const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
+const isAgent = project.id === 'my-hello-agent';
+const coreFlows = [planFlow, reflectionFlow, agentScopeFlow, autoGenFlow, camelFlow, langGraphFlow];
+const extensionFlows = [myLlmFlow, mySimpleAgentFlow, myReActAgentFlow, myReflectionAgentFlow];
+const projectNavigation = isAgent
+    ? [
+        { label: '旅行 Agent', id: 'lab-title' },
+        { label: 'ReAct', id: 'react-lab-title' },
+        { label: 'Plan-and-Solve', id: planFlow.id },
+        { label: 'Reflection', id: reflectionFlow.id },
+        { label: 'AgentScope', id: agentScopeFlow.id },
+        { label: 'AutoGen', id: autoGenFlow.id },
+        { label: 'CAMEL', id: camelFlow.id },
+        { label: 'LangGraph', id: langGraphFlow.id },
+        { label: '第七章扩展', id: 'chapter-seven-title' },
+    ]
+    : headings.filter((heading) => heading.depth === 2).map((heading) => ({ label: heading.text, id: heading.slug }));
 ---
 
 <!doctype html>
 <html lang="zh-CN">
-	<head><BaseHead title={`${project.data.title} · 项目`} description={project.data.description} /></head>
-	<body>
-		<Header />
-		<main>
-			<div class="project-shell">
-				<a class="back-link" href={`${base}projects/`}>← 返回项目</a>
-				<header class="project-header">
-					<div><p class="eyebrow">ACTIVE PROJECT</p><h1>{project.data.title}</h1><p class="summary">{project.data.description}</p></div>
-					<div class="project-meta"><span class="status"><i aria-hidden="true"></i>{project.data.statusLabel}</span><span>开始于 {project.data.startDate.toLocaleDateString('zh-CN')}</span>{project.data.updatedDate && <span>更新于 {project.data.updatedDate.toLocaleDateString('zh-CN')}</span>}</div>
-				</header>
-				<div class="tag-row">{project.data.tags.map((tag) => <span>#{tag}</span>)}</div>
-				{project.id === 'my-hello-agent' && <ProjectLab />}
-				<article class="project-prose"><Content /></article>
-				{project.id === 'my-hello-agent' && <ReActLab />}
-				{project.id === 'my-hello-agent' && <><ExperimentFlow flow={planFlow} /><ExperimentFlow flow={reflectionFlow} /><ExperimentFlow flow={agentScopeFlow} /><ExperimentFlow flow={autoGenFlow} /><ExperimentFlow flow={camelFlow} /><ExperimentFlow flow={langGraphFlow} /></>}
-				{project.data.source && <p class="source-note">学习来源：<a href={project.data.source} rel="noreferrer">{project.data.source}</a></p>}
-				{project.id === 'my-hello-agent' && <section class="chapter-seven-heading" aria-labelledby="chapter-seven-title"><p class="eyebrow">7-EXPERIMENT / EXTENSIONS</p><h2 id="chapter-seven-title">第七章 · 四种独立扩展方法</h2><p>四个实验分别扩展模型 Provider、SimpleAgent 工具能力、ReAct 自纠能力和通用 Reflection 评估循环。它们共享项目配置，但彼此不是前后调用关系。</p></section>}
-				{project.id === 'my-hello-agent' && <><ExperimentFlow flow={myLlmFlow} /><ExperimentFlow flow={mySimpleAgentFlow} /><ExperimentFlow flow={myReActAgentFlow} /><ExperimentFlow flow={myReflectionAgentFlow} /></>}
-			</div>
-		</main>
-		<Footer />
-	</body>
+    <head>
+        <BaseHead title={`${project.data.title} · 项目档案`} description={project.data.description} />
+    </head>
+    <body>
+        <Header />
+        <main id="main-content" class:list={['project-page', { 'agent-project': isAgent }]}>
+            <nav class="breadcrumb" aria-label="当前位置">
+                <a href={`${base}projects/`}>实验与项目</a>
+                <span aria-hidden="true">/</span>
+                <span aria-current="page">{project.data.title}</span>
+            </nav>
+            <header class="project-header">
+                <div class="project-title">
+                    <p class="eyebrow">{isAgent ? 'AGENT EXPERIMENTS / 智能体实验' : 'PRODUCT STUDY / 产品实践'}</p>
+                    <h1>{project.data.title}</h1>
+                    <p class="summary">{project.data.description}</p>
+                    <ul class="tag-row" aria-label="项目技术标签">
+                        {project.data.tags.map((tag) => <li>{tag}</li>)}
+                    </ul>
+                </div>
+                <aside class="project-facts" aria-label="项目基本信息">
+                    <dl>
+                        <div><dt>状态</dt><dd class:list={['status', project.data.status]}><i aria-hidden="true"></i>{project.data.statusLabel}</dd></div>
+                        <div><dt>开始</dt><dd><time datetime={project.data.startDate.toISOString()}>{project.data.startDate.toLocaleDateString('zh-CN')}</time></dd></div>
+                        {project.data.updatedDate && <div><dt>更新</dt><dd><time datetime={project.data.updatedDate.toISOString()}>{project.data.updatedDate.toLocaleDateString('zh-CN')}</time></dd></div>}
+                    </dl>
+                    {project.data.repo && <a class="source-link" href={project.data.repo} target="_blank" rel="noreferrer">查看 GitHub 源码 <span aria-hidden="true">↗</span></a>}
+                    {project.data.source && <a class="source-link" href={project.data.source} target="_blank" rel="noreferrer">学习来源 · Hello Agents <span aria-hidden="true">↗</span></a>}
+                </aside>
+            </header>
+
+            {projectNavigation.length > 0 && (
+                <nav class="project-navigation" aria-label={isAgent ? '快速前往实验' : '项目内容目录'}>
+                    <span>{isAgent ? '实验索引' : '内容索引'}</span>
+                    <ul>
+                        {projectNavigation.map((item) => <li><a href={`#${item.id}`}>{item.label}</a></li>)}
+                    </ul>
+                </nav>
+            )}
+
+            <div class="project-body">
+                {isAgent && <ProjectLab />}
+                <article class="project-prose"><Content /></article>
+                {isAgent && <ReActLab />}
+                {isAgent && coreFlows.map((flow) => <ExperimentFlow flow={flow} />)}
+                {project.data.source && (
+                    <p class="source-note">学习来源：<a href={project.data.source} rel="noreferrer">{project.data.source}</a></p>
+                )}
+                {isAgent && (
+                    <section class="chapter-seven-heading" aria-labelledby="chapter-seven-title">
+                        <p class="eyebrow">7-EXPERIMENT / EXTENSIONS</p>
+                        <h2 id="chapter-seven-title">第七章 · 四种独立扩展方法</h2>
+                        <p>四个实验分别扩展模型 Provider、SimpleAgent 工具能力、ReAct 自纠能力和通用 Reflection 评估循环。它们共享项目配置，彼此独立。</p>
+                        <nav class="extension-navigation" aria-label="第七章扩展实验">
+                            <ul>{extensionFlows.map((flow) => <li><a href={`#${flow.id}`}>{flow.title.split(' · ')[0]}</a></li>)}</ul>
+                        </nav>
+                    </section>
+                )}
+                {isAgent && extensionFlows.map((flow) => <ExperimentFlow flow={flow} />)}
+            </div>
+            <footer class="project-footer">
+                <a class="text-link" href={`${base}projects/`}>← 返回实验与项目</a>
+                <a class="text-link" href="#main-content">回到顶部 ↑</a>
+            </footer>
+        </main>
+        <Footer />
+    </body>
 </html>
 
 <style>
-	main { padding-top: 3.2rem; }
-	.project-shell { width: min(900px, 100%); margin: auto; }
-	.back-link { display: inline-block; margin-bottom: 2.1rem; font-size: .82rem; text-decoration: none; }
-	.project-header { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line); }
-	.eyebrow { margin: 0 0 .5rem; color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
-	.project-header h1 { margin: 0; font-size: clamp(2.4rem, 6vw, 4.2rem); }
-	.summary { max-width: 38rem; margin: .9rem 0 0; color: var(--muted); font-size: 1rem; }
-	.project-meta { display: grid; flex: 0 0 auto; gap: .35rem; color: var(--muted); font-size: .76rem; text-align: right; }
-	.status { display: inline-flex; align-items: center; justify-content: end; gap: .4rem; color: var(--accent-dark); font-weight: 700; }
-	.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-	.tag-row { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1rem; }
-	.tag-row span { padding: .18rem .48rem; color: var(--muted); background: rgba(91,163,224,.1); border-radius: 999px; font-size: .72rem; }
-	.project-prose { width: min(720px, 100%); margin: 0 auto; }
-	.project-prose :global(h2) { margin-top: 2.4rem; font-size: 1.55rem; }
-	.project-prose :global(h3) { margin-top: 1.7rem; font-size: 1.15rem; }
-	.source-note { margin: 2rem 0 0; color: var(--muted); font-size: .8rem; }
-	.chapter-seven-heading { margin: 4.5rem 0 1.2rem; padding-top: 2rem; scroll-margin-top: 6rem; border-top: 1px solid var(--line); }
-	.chapter-seven-heading h2 { margin: 0; font-size: 1.8rem; }
-	.chapter-seven-heading > p:last-child { max-width: 48rem; margin: .7rem 0 0; color: var(--muted); font-size: .9rem; line-height: 1.7; }
-	@media (max-width: 700px) { .project-header { display: block; } .project-meta { justify-items: start; margin-top: 1.2rem; text-align: left; } .status { justify-content: start; } }
+    .project-page {
+        padding-top: 2.5rem;
+    }
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .7rem;
+        margin-bottom: 2.5rem;
+        color: var(--muted);
+        font-size: .78rem;
+    }
+    .breadcrumb a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: var(--muted);
+        text-decoration: none;
+    }
+    .breadcrumb a:hover {
+        color: var(--accent);
+    }
+    .project-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 240px;
+        gap: clamp(2rem, 5vw, 5rem);
+        align-items: end;
+        padding-bottom: 2.5rem;
+        border-bottom: 1px solid var(--line);
+    }
+    .project-title {
+        min-width: 0;
+    }
+    .eyebrow {
+        margin-bottom: 1rem;
+        font-size: .72rem;
+    }
+    .project-header h1 {
+        margin: 0 0 1.3rem;
+        font-size: clamp(2.3rem, 5vw, 4.1rem);
+        letter-spacing: -.04em;
+        overflow-wrap: anywhere;
+    }
+    .summary {
+        max-width: 44rem;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.85;
+    }
+    .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin: 1.5rem 0 0;
+        padding: 0;
+        list-style: none;
+    }
+    .tag-row li {
+        padding: .2rem .5rem;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        color: var(--muted);
+        font-size: .72rem;
+    }
+    .project-facts {
+        padding: 1.2rem;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+    }
+    .project-facts dl {
+        margin: 0 0 .5rem;
+    }
+    .project-facts dl > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .4rem 0;
+        font-size: .78rem;
+    }
+    .project-facts dt {
+        color: var(--muted);
+    }
+    .project-facts dd {
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+    }
+    .status {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+    }
+    .status i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+    }
+    .status.completed i {
+        background: var(--success);
+    }
+    .status.paused i {
+        background: var(--signal);
+    }
+    .source-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        min-height: 44px;
+        width: 100%;
+        padding-top: .5rem;
+        border-top: 1px solid var(--line);
+        font-size: .76rem;
+        text-decoration: none;
+    }
+    .project-navigation {
+        display: flex;
+        align-items: baseline;
+        gap: 1.4rem;
+        padding: 1.2rem 0;
+        border-bottom: 1px solid var(--line);
+    }
+    .project-navigation > span {
+        flex-shrink: 0;
+        color: var(--muted);
+        font-size: .75rem;
+    }
+    .project-navigation ul, .extension-navigation ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .2rem 1.2rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .project-navigation a, .extension-navigation a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: var(--ink);
+        font-size: .78rem;
+        text-decoration: none;
+    }
+    .project-navigation a:hover, .extension-navigation a:hover {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: .3em;
+    }
+    .project-body {
+        width: min(960px, 100%);
+        margin-inline: auto;
+        min-width: 0;
+    }
+    .project-prose {
+        width: min(760px, 100%);
+        margin: 3rem auto;
+        font-size: 1rem;
+        line-height: 1.9;
+    }
+    .agent-project .project-prose {
+        margin: 0;
+    }
+    .project-prose :global(h2) {
+        margin-top: 3rem;
+        font-size: 1.8rem;
+        scroll-margin-top: 7rem;
+    }
+    .project-prose :global(h3) {
+        margin-top: 2rem;
+        font-size: 1.3rem;
+    }
+    .project-prose :global(p) {
+        color: var(--muted);
+    }
+    .project-prose :global(img) {
+        width: 100%;
+        height: auto;
+        margin: 1.6rem 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+    }
+    .project-body :global(.experiment-flow), .project-body :global(.project-lab), .project-body :global(.react-lab) {
+        scroll-margin-top: 7rem;
+    }
+    .project-body :global(h2[id]) {
+        scroll-margin-top: 7rem;
+    }
+    .source-note {
+        margin: 2rem 0;
+        color: var(--muted);
+        font-size: .8rem;
+        overflow-wrap: anywhere;
+    }
+    .chapter-seven-heading {
+        margin: 4rem 0 1.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--line);
+    }
+    .chapter-seven-heading h2 {
+        margin-bottom: 1rem;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+    }
+    .chapter-seven-heading > p:last-of-type {
+        max-width: 44rem;
+        margin-bottom: .7rem;
+        color: var(--muted);
+        font-size: .9rem;
+    }
+    .extension-navigation a {
+        color: var(--accent);
+    }
+    .project-footer {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 4rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--line);
+    }
+    @media (max-width: 800px) {
+        .project-header {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 1.5rem;
+        }
+        .project-facts {
+            max-width: 400px;
+        }
+        .project-navigation {
+            align-items: start;
+            flex-direction: column;
+            gap: .5rem;
+        }
+    }
+    @media (max-width: 560px) {
+        .project-page {
+            padding-top: 1.5rem;
+        }
+        .breadcrumb {
+            margin-bottom: 1.5rem;
+        }
+        .project-prose {
+            margin-top: 2rem;
+        }
+    }
 </style>

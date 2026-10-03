@@ -4,71 +4,398 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import { basePath as base, topicHref } from '../utils/content';
 
-type Props = CollectionEntry<'blog'>['data'] & { metaText?: string };
+type ArticleLink = { title: string; id: string };
+type Heading = { depth: number; slug: string; text: string };
+type Props = CollectionEntry<'blog'>['data'] & {
+	metaText?: string;
+	headings?: Heading[];
+	readingMinutes?: number;
+	previous?: ArticleLink;
+	next?: ArticleLink;
+	related?: ArticleLink[];
+};
 
-const { title, description, pubDate, updatedDate, metaText } = Astro.props;
+const {
+	title, description, pubDate, updatedDate, heroImage, category, tags = [],
+	metaText, headings = [], readingMinutes, previous, next, related = [],
+} = Astro.props;
+const contents = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const articleURL = (id: string) => `${base}blog/${id}/`;
+const topicURL = topicHref(category ?? '随笔');
 ---
 
+<!doctype html>
 <html lang="zh-CN">
 	<head>
-		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: var(--ink);
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: var(--muted);
-			}
-			.meta-text { font-family: "SimSun", "宋体", "Songti SC", serif; letter-spacing: .08em; }
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
+		<BaseHead title={title} description={description} image={heroImage} />
 	</head>
-
 	<body>
+		<progress class="reading-progress" data-reading-progress max="100" value="0" aria-label="文章阅读进度"></progress>
 		<Header />
-		<main>
-			<article>
-				<div class="prose">
-					<div class="title">
-						<h1>{title}</h1>
-						<div class="date">
-							{metaText ? <span class="meta-text">{metaText}</span> : <FormattedDate date={pubDate} />}
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										最后更新于 <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<hr />
+		<main class="reading-page" id="main-content">
+			<article aria-labelledby="article-title">
+				<header class="article-header">
+					<a class="archive-link" href={`${base}blog/`}><span aria-hidden="true">←</span> 全部文章</a>
+					<div class="article-kicker">
+						<a href={topicURL}>{category ?? '随笔'}</a>
+						<span aria-hidden="true">/</span>
+						<span>WRITING</span>
 					</div>
-					<slot />
+					<h1 id="article-title">{title}</h1>
+					<p class="article-description">{description}</p>
+					<div class="article-meta">
+						<span>{metaText ?? <FormattedDate date={pubDate} />}</span>
+						{readingMinutes && <span>约 {readingMinutes} 分钟阅读</span>}
+						{updatedDate && <span>更新于 <FormattedDate date={updatedDate} /></span>}
+					</div>
+				</header>
+
+				{contents.length > 0 && (
+					<details class="mobile-contents">
+						<summary>文章目录 <span>{contents.length} 个小节</span></summary>
+						<nav aria-label="文章目录">
+							<ol class="contents-list">
+								{contents.map((heading) => (
+									<li class:list={{ 'sub-heading': heading.depth === 3 }}>
+										<a href={`#${heading.slug}`} data-heading-link={heading.slug}>{heading.text}</a>
+									</li>
+								))}
+							</ol>
+						</nav>
+					</details>
+				)}
+
+				<div class="reading-grid">
+					<div class="article-column">
+						<div class="article-prose" data-article-body><slot /></div>
+						<footer class="article-footer">
+							<p class="footer-label">文章主题</p>
+							<div class="article-topics">
+								<a href={topicURL}>{category ?? '随笔'} <span aria-hidden="true">↗</span></a>
+								{tags.map((tag) => <a href={`${base}blog/?tag=${encodeURIComponent(tag)}`}>{tag}</a>)}
+							</div>
+							<a class="back-top" href="#article-title">回到文章开头 <span aria-hidden="true">↑</span></a>
+						</footer>
+					</div>
+					{contents.length > 0 && (
+						<aside class="desktop-contents">
+							<nav class="contents-sticky" aria-label="文章目录">
+								<p class="footer-label">ON THIS PAGE / 目录</p>
+								<ol class="contents-list">
+									{contents.map((heading) => (
+										<li class:list={{ 'sub-heading': heading.depth === 3 }}>
+											<a href={`#${heading.slug}`} data-heading-link={heading.slug}>{heading.text}</a>
+										</li>
+									))}
+								</ol>
+							</nav>
+						</aside>
+					)}
 				</div>
+
+				{(previous || next) && (
+					<nav class="article-neighbors" aria-label="相邻文章">
+						{previous ? (
+							<a href={articleURL(previous.id)} rel="prev"><span>← 上一篇</span><strong>{previous.title}</strong></a>
+						) : <div />}
+						{next ? (
+							<a href={articleURL(next.id)} rel="next"><span>下一篇 →</span><strong>{next.title}</strong></a>
+						) : <div />}
+					</nav>
+				)}
 			</article>
+
+			{related.length > 0 && (
+				<section class="related-writing" aria-labelledby="related-title">
+					<div class="related-heading">
+						<h2 id="related-title">沿着这个话题，继续读</h2>
+						<a href={topicURL}>全部 {category} <span aria-hidden="true">↗</span></a>
+					</div>
+					<ol>
+						{related.map((item, index) => (
+							<li><span>0{index + 1}</span><a href={articleURL(item.id)}>{item.title} <span aria-hidden="true">↗</span></a></li>
+						))}
+					</ol>
+				</section>
+			)}
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<script>
+	const article = document.querySelector<HTMLElement>('[data-article-body]');
+	const progress = document.querySelector<HTMLProgressElement>('[data-reading-progress]');
+	const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-heading-link]')];
+	const headings = article ? [...article.querySelectorAll<HTMLElement>('h2[id], h3[id]')] : [];
+	const header = document.querySelector<HTMLElement>('.site-header');
+	let scheduled = false;
+	let activeSlug = '';
+
+	function updateReadingState() {
+		scheduled = false;
+		if (!article || !progress) return;
+		const headerHeight = header?.getBoundingClientRect().height ?? 80;
+		const offset = headerHeight + 32;
+		document.documentElement.style.setProperty('--reading-offset', `${offset}px`);
+		const bounds = article.getBoundingClientRect();
+		const traveled = window.innerHeight - bounds.top;
+		const distance = bounds.height + window.innerHeight - offset;
+		progress.value = Math.max(0, Math.min(100, traveled / distance * 100));
+		let current = '';
+		for (const heading of headings) {
+			if (heading.getBoundingClientRect().top > offset + 24) break;
+			current = heading.id;
+		}
+		if (current === activeSlug) return;
+		activeSlug = current;
+		for (const link of links) {
+			if (link.dataset.headingLink === current) link.setAttribute('aria-current', 'location');
+			else link.removeAttribute('aria-current');
+		}
+	}
+
+	function scheduleUpdate() {
+		if (scheduled) return;
+		scheduled = true;
+		requestAnimationFrame(updateReadingState);
+	}
+
+	window.addEventListener('scroll', scheduleUpdate, { passive: true });
+	window.addEventListener('resize', scheduleUpdate, { passive: true });
+	window.addEventListener('load', scheduleUpdate, { once: true });
+	if (article) new ResizeObserver(scheduleUpdate).observe(article);
+	updateReadingState();
+</script>
+
+<style>
+	:global(html:has(.reading-page)) { scroll-padding-top: 0; }
+	.reading-progress {
+		position: fixed;
+		inset: 0 0 auto;
+		z-index: 40;
+		width: 100%;
+		height: 3px;
+		border: 0;
+		appearance: none;
+		background: transparent;
+		color: var(--accent);
+	}
+	.reading-progress::-webkit-progress-bar { background: transparent; }
+	.reading-progress::-webkit-progress-value { background: var(--accent); }
+	.reading-progress::-moz-progress-bar { background: var(--accent); }
+	.reading-page {
+		width: min(1040px, calc(100% - 3rem));
+		padding-top: 3rem;
+	}
+	.article-header {
+		max-width: 820px;
+		margin-bottom: 3.5rem;
+	}
+	.archive-link {
+		display: inline-flex;
+		align-items: center;
+		gap: .75rem;
+		min-height: 44px;
+		margin-bottom: 2rem;
+		color: var(--muted);
+		font-size: .86rem;
+		text-decoration: none;
+	}
+	.article-kicker {
+		display: flex;
+		align-items: center;
+		gap: .8rem;
+		margin-bottom: 1.25rem;
+		font-size: .74rem;
+		letter-spacing: .08em;
+		color: var(--muted);
+	}
+	.article-kicker a { text-decoration: none; font-weight: 700; }
+	.article-header h1 {
+		max-width: 850px;
+		margin-bottom: 1.5rem;
+		font-size: clamp(2rem, 4.3vw, 3.4rem);
+		line-height: 1.25;
+		letter-spacing: -.035em;
+		text-wrap: balance;
+		scroll-margin-top: var(--reading-offset, 130px);
+	}
+	.article-description {
+		max-width: 720px;
+		margin-bottom: 1.75rem;
+		color: var(--muted);
+		font-size: 1.08rem;
+		line-height: 1.8;
+	}
+	.article-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: .5rem 1.5rem;
+		color: var(--muted);
+		font-size: .78rem;
+	}
+	.reading-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 720px) minmax(0, 220px);
+		gap: clamp(2rem, 5vw, 5rem);
+		border-top: 1px solid var(--line);
+		padding-top: 2.5rem;
+	}
+	.article-column { min-width: 0; }
+	.article-prose { font-size: 1.02rem; line-height: 1.95; overflow-wrap: anywhere; }
+	.article-prose :global(h1),
+	.article-prose :global(h2),
+	.article-prose :global(h3),
+	.article-prose :global(h4) {
+		scroll-margin-top: var(--reading-offset, 130px);
+		line-height: 1.45;
+		overflow-wrap: anywhere;
+	}
+	.article-prose :global(h2) {
+		margin: 3rem 0 1.2rem;
+		font-size: clamp(1.45rem, 2.3vw, 1.9rem);
+		letter-spacing: -.015em;
+	}
+	.article-prose :global(h2:first-child) { margin-top: 0; }
+	.article-prose :global(h3) { margin: 2rem 0 .9rem; font-size: 1.25rem; }
+	.article-prose :global(h4) { margin: 1.75rem 0 .8rem; font-size: 1.08rem; }
+	.article-prose :global(p) { margin: 0 0 1.4rem; }
+	.article-prose :global(ul), .article-prose :global(ol) { margin: 1rem 0 1.5rem; padding-left: 1.5rem; }
+	.article-prose :global(li) { margin: .45rem 0; }
+	.article-prose :global(li > ul), .article-prose :global(li > ol) { margin-block: .5rem; }
+	.article-prose :global(a) { text-underline-offset: .22em; text-decoration-thickness: 1px; }
+	.article-prose :global(img) {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		margin: 2rem auto;
+		border: 1px solid var(--line);
+		border-radius: var(--radius, 6px);
+	}
+	.article-prose :global(figure) { max-width: 100%; margin: 2rem 0; }
+	.article-prose :global(figcaption) { margin-top: .75rem; color: var(--muted); font-size: .83rem; text-align: center; }
+	.article-prose :global(pre) {
+		max-width: 100%;
+		min-width: 0;
+		margin: 1.6rem 0;
+		padding: 1.25rem;
+		overflow-x: auto;
+		font-size: .83rem;
+		line-height: 1.75;
+		border-radius: var(--radius, 6px);
+		overflow-wrap: normal;
+	}
+	.article-prose :global(pre code) { white-space: pre; }
+	.article-prose :global(:not(pre) > code) { font-size: .87em; overflow-wrap: anywhere; padding: .15em .35em; }
+	.article-prose :global(blockquote) {
+		padding: .9rem 1.2rem;
+		margin: 1.75rem 0;
+		border-left: 3px solid var(--accent);
+		background: var(--surface);
+		font-size: 1em;
+	}
+	.article-prose :global(blockquote > :last-child) { margin-bottom: 0; }
+	.article-prose :global(table) {
+		display: block;
+		max-width: 100%;
+		margin: 1.75rem 0;
+		overflow-x: auto;
+		border-collapse: collapse;
+		font-size: .9rem;
+		line-height: 1.7;
+	}
+	.article-prose :global(th), .article-prose :global(td) {
+		min-width: 100px;
+		padding: .75rem 1rem;
+		border: 1px solid var(--line);
+		text-align: left;
+	}
+	.article-prose :global(th) { background: var(--surface); font-weight: 700; }
+	.article-prose :global(hr) { margin: 2.5rem 0; }
+	.article-prose :global(video), .article-prose :global(iframe), .article-prose :global(svg) { max-width: 100%; }
+	.contents-sticky {
+		position: sticky;
+		top: var(--reading-offset, 130px);
+		max-height: calc(100dvh - var(--reading-offset, 130px) - 24px);
+		overflow-y: auto;
+		padding: 2px 8px 8px 2px;
+	}
+	.footer-label { margin: 0 0 .8rem; color: var(--muted); font-size: .7rem; font-weight: 700; letter-spacing: .08em; }
+	.contents-list { padding: 0; margin: 0; list-style: none; }
+	.contents-list li { margin: 0; }
+	.contents-list a {
+		display: block;
+		padding: .6rem .75rem;
+		border-left: 2px solid var(--line);
+		color: var(--muted);
+		font-size: .77rem;
+		line-height: 1.6;
+		text-decoration: none;
+		overflow-wrap: anywhere;
+	}
+	.contents-list a:hover { color: var(--ink); background: var(--surface); }
+	.contents-list a[aria-current] { color: var(--accent); border-left-color: var(--accent); background: var(--surface); font-weight: 700; }
+	.contents-list .sub-heading a { padding-left: 1.3rem; font-size: .73rem; }
+	.mobile-contents { display: none; }
+	.article-footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+	.article-topics { display: flex; flex-wrap: wrap; gap: .5rem; }
+	.article-topics > * {
+		display: inline-flex;
+		align-items: center;
+		gap: .5rem;
+		min-height: 44px;
+		padding: .3rem .65rem;
+		border: 1px solid var(--line);
+		border-radius: var(--radius, 6px);
+		font-size: .75rem;
+		text-decoration: none;
+	}
+	.article-topics > span { color: var(--muted); }
+	.back-top { display: inline-flex; min-height: 44px; align-items: center; gap: 1rem; margin-top: 1rem; font-size: .8rem; text-decoration: none; }
+	.article-neighbors {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1.5rem;
+		margin-top: 3.5rem;
+		border-top: 1px solid var(--line);
+	}
+	.article-neighbors a { display: flex; flex-direction: column; gap: .9rem; padding: 1.75rem 0; color: var(--ink); text-decoration: none; }
+	.article-neighbors a > span { color: var(--muted); font-size: .77rem; }
+	.article-neighbors strong { max-width: 420px; font-size: 1rem; line-height: 1.65; }
+	.article-neighbors a:hover strong { color: var(--accent); }
+	.related-writing { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--line); }
+	.related-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+	.related-heading h2 { margin: 0; font-size: 1.35rem; }
+	.related-heading > a { font-size: .8rem; text-decoration: none; }
+	.related-writing ol { list-style: none; margin: 0; padding: 0; }
+	.related-writing li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); align-items: baseline; gap: 1rem; border-bottom: 1px solid var(--line); }
+	.related-writing li > span { color: var(--muted); font-size: .75rem; }
+	.related-writing li > a { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 1rem 0; color: var(--ink); font-size: .95rem; text-decoration: none; }
+	.related-writing li > a:hover { color: var(--accent); }
+	@media (max-width: 900px) {
+		.reading-page { max-width: 740px; }
+		.reading-grid { display: block; }
+		.desktop-contents { display: none; }
+		.mobile-contents { display: block; margin-bottom: 2rem; border: 1px solid var(--line); border-radius: var(--radius, 6px); background: var(--surface); }
+		.mobile-contents summary { padding: .85rem 1rem; min-height: 44px; cursor: pointer; font-size: .85rem; }
+		.mobile-contents summary > span { margin-left: 1rem; color: var(--muted); font-size: .74rem; }
+		.mobile-contents nav { padding: 0 1rem 1rem; }
+		.contents-list a { min-height: 44px; display: flex; align-items: center; }
+	}
+	@media (max-width: 560px) {
+		.reading-page { width: calc(100% - 2rem); padding-top: 1.5rem; }
+		.article-header { margin-bottom: 2rem; }
+		.archive-link { margin-bottom: 1.5rem; }
+		.article-header h1 { font-size: 2rem; line-height: 1.35; }
+		.article-description { font-size: .95rem; }
+		.article-prose { font-size: .96rem; line-height: 1.95; }
+		.article-meta { gap: .35rem 1rem; }
+		.article-neighbors { grid-template-columns: 1fr; gap: 0; }
+		.article-neighbors > div { display: none; }
+		.article-neighbors a + a { border-top: 1px solid var(--line); }
+		.article-neighbors a { padding: 1.25rem 0; }
+	}
+</style>
