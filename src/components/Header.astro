@@ -10,9 +10,9 @@ import { basePath } from '../utils/content';
       <span class="brand-name">清月<span>FIELD NOTES</span></span>
     </a>
     <div class="internal-links">
-      <HeaderLink href="/blog/">文章 <span>Writing</span></HeaderLink>
-      <HeaderLink href="/projects/">实验室 <span>Labs</span></HeaderLink>
-      <HeaderLink href="/about/">关于 <span>About</span></HeaderLink>
+      <HeaderLink href="/blog/">Writing</HeaderLink>
+      <HeaderLink href="/projects/">Labs</HeaderLink>
+      <HeaderLink href="/about/">About</HeaderLink>
     </div>
     <a class="github-link" href="https://github.com/qing-2114" target="_blank" rel="noreferrer" aria-label="GitHub，打开新标签页">
       <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-4 1-4-2-6-2m12 5v-3.4c0-1 .1-1.5-.5-2.1 3.2-.4 6.5-1.6 6.5-7a5.5 5.5 0 0 0-1.5-3.8 5 5 0 0 0-.1-3.7S17.2 1.6 15 3a13 13 0 0 0-6 0C6.8 1.6 5.1 2 5.1 2A5 5 0 0 0 5 5.7 5.5 5.5 0 0 0 3.5 9.5c0 5.4 3.3 6.6 6.5 7-.6.6-.5 1.4-.5 2.1V22"/></svg>
@@ -34,10 +34,16 @@ import { basePath } from '../utils/content';
   .brand-name { font-family: var(--font-display); font-size: 1.4rem; line-height: 1.2; font-weight: 700; }
   .brand-name > span { display: block; margin-top: .3rem; font-family: var(--font-mono); font-size: .5rem; letter-spacing: .12em; font-weight: 400; }
   .internal-links { display: flex; gap: 2rem; }
-  .internal-links :global(a) { display: flex; align-items: center; gap: .4rem; min-height: 44px; color: var(--muted); font-size: .85rem; text-decoration: none; border-bottom: 2px solid transparent; }
-  .internal-links :global(a span) { font-size: .7rem; }
-  .internal-links :global(a.active), .internal-links :global(a:hover) { color: var(--ink); border-color: var(--accent); }
+  .internal-links :global(a) { position: relative; display: flex; align-items: center; min-height: 44px; color: var(--muted); font-size: .9rem; text-decoration: none; }
+  .internal-links :global(a)::after { content: ''; position: absolute; bottom: 0; inset-inline: 0; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform var(--motion-slow); }
+  .internal-links :global(a.active), .internal-links :global(a:hover), .internal-links :global(a:focus-visible) { color: var(--ink); }
+  .internal-links :global(a.active)::after, .internal-links :global(a:hover)::after, .internal-links :global(a:focus-visible)::after { transform: scaleX(1); }
+  .brand-mark { transition: transform var(--motion-slow), border-color var(--motion-fast); }
+  .brand:is(:hover, :focus-visible) .brand-mark { transform: rotate(-6deg); border-color: var(--accent); }
+  .github-link svg { transition: transform var(--motion-slow); }
+  .github-link:is(:hover, :focus-visible) svg { transform: translateY(-3px); }
+  @media (prefers-reduced-motion: reduce) { .brand .brand-mark, .github-link svg { transform: none !important; } }
   .github-link { display: inline-flex; align-items: center; min-height: 44px; gap: .5rem; color: var(--ink); font-size: .75rem; text-decoration: none; }
   @media (max-width: 900px) { .nav-shell { width: calc(100% - 48px); gap: 1.2rem; } .internal-links { gap: 1.3rem; } }
-  @media (max-width: 600px) { .nav-shell { width: calc(100% - 40px); min-height: 76px; gap: 1rem; } .brand-name > span, .internal-links :global(a span), .github-link span { display: none; } .brand-mark { width: 32px; height: 32px; font-size: .7rem; } .brand-name { font-size: 1.2rem; } .brand { gap: .4rem; } .internal-links { gap: .9rem; margin-left: auto; } .internal-links :global(a) { font-size: .8rem; } .github-link { display: none; } }
+  @media (max-width: 600px) { .nav-shell { width: calc(100% - 40px); min-height: 76px; gap: 1rem; } .brand-name > span, .github-link span { display: none; } .brand-mark { width: 32px; height: 32px; font-size: .7rem; } .brand-name { font-size: 1.2rem; } .brand { gap: .4rem; } .internal-links { gap: .9rem; margin-left: auto; } .internal-links :global(a) { font-size: .8rem; } .github-link { display: none; } }
 </style>

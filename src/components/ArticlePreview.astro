@@ -9,7 +9,7 @@ const { post, compact = false } = Astro.props;
 const cover = articleCover(post);
 const Heading = compact ? 'h2' : 'h3';
 ---
-<article class:list={['article-preview', { compact }]}>
+<article class:list={['article-preview', { compact }]} data-reveal>
   <a class="cover" href={`${basePath}blog/${post.id}/`} tabindex="-1" aria-hidden="true">
     {cover ? <Image src={cover} alt="" width={720} height={450} widths={[360, 720]} sizes={compact ? '(max-width: 720px) 100vw, 230px' : '(max-width: 720px) 100vw, 33vw'} loading="lazy" /> : <span class="cover-type">FIELD NOTES</span>}
   </a>
@@ -24,7 +24,19 @@ const Heading = compact ? 'h2' : 'h3';
   .article-preview { display: flex; flex-direction: column; min-width: 0; }
   .cover { display: grid; overflow: hidden; aspect-ratio: 16 / 10; background: var(--surface-alt); border: 1px solid var(--line); border-radius: var(--radius); place-items: center; }
   .cover :global(img) { width: 100%; height: 100%; object-fit: cover; border-radius: 0; transition: transform var(--motion-slow); }
-  .article-preview:hover .cover :global(img) { transform: scale(1.025); }
+  .article-preview:focus-within .cover :global(img) { transform: scale(1.055); }
+  .cover { transition: border-color var(--motion-fast), box-shadow var(--motion-slow); }
+  .article-preview:focus-within .cover { border-color: var(--accent); box-shadow: var(--box-shadow); }
+  .preview-bottom a span { transition: transform var(--motion-slow); }
+  .article-preview:focus-within .preview-bottom a span { transform: translate(3px, -3px); }
+  @media (hover: hover) {
+    .article-preview:hover .cover :global(img) { transform: scale(1.055); }
+    .article-preview:hover .cover { border-color: var(--accent); box-shadow: var(--box-shadow); }
+    .article-preview:hover .preview-bottom a span { transform: translate(3px, -3px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .article-preview .cover :global(img), .article-preview .preview-bottom a span { transform: none !important; }
+  }
   .cover-type { color: var(--accent); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .2em; }
   .preview-copy { display: flex; flex: 1; flex-direction: column; padding: 1.25rem 0 0; }
   h2, h3 { font-size: 1.35rem; line-height: 1.5; letter-spacing: -.02em; }

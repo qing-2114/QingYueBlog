@@ -36,7 +36,7 @@ const topicURL = topicHref(category ?? '随笔');
 		<Header />
 		<main class="reading-page" id="main-content">
 			<article aria-labelledby="article-title">
-				<header class="article-header">
+				<header class="article-header" data-reveal>
 					<a class="archive-link" href={`${base}blog/`}><span aria-hidden="true">←</span> 全部文章</a>
 					<div class="article-kicker">
 						<a href={topicURL}>{category ?? '随笔'}</a>
@@ -96,7 +96,7 @@ const topicURL = topicHref(category ?? '随笔');
 				</div>
 
 				{(previous || next) && (
-					<nav class="article-neighbors" aria-label="相邻文章">
+					<nav class="article-neighbors" data-reveal aria-label="相邻文章">
 						{previous ? (
 							<a href={articleURL(previous.id)} rel="prev"><span>← 上一篇</span><strong>{previous.title}</strong></a>
 						) : <div />}
@@ -108,7 +108,7 @@ const topicURL = topicHref(category ?? '随笔');
 			</article>
 
 			{related.length > 0 && (
-				<section class="related-writing" aria-labelledby="related-title">
+				<section class="related-writing" data-reveal aria-labelledby="related-title">
 					<div class="related-heading">
 						<h2 id="related-title">沿着这个话题，继续读</h2>
 						<a href={topicURL}>全部 {category} <span aria-hidden="true">↗</span></a>

@@ -16,7 +16,7 @@ const categories = [...new Set(posts.map((post) => post.data.category))];
   <body>
     <Header />
     <main id="main-content">
-      <header class="archive-header">
+      <header class="archive-header" data-reveal>
         <div><p class="eyebrow">WRITING / THE ARCHIVE</p><h1>每一篇，<br /><span>都是一次探索。</span></h1></div>
         <div class="archive-caption"><p>从一个困惑开始，到一段可以回看的记录。<br />这里收集技术实践、实验复盘和仍在生长的想法。</p><span>{posts.length.toString().padStart(2,'0')} FIELD NOTES</span></div>
       </header>
