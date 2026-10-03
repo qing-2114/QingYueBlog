@@ -12,7 +12,7 @@ const routes = [
     { id: 'travel-strategy', d: 'M 375 276 V 219', kind: 'feedback', color: '#3c9b76' },
     { id: 'travel-action', d: 'M 530 218 V 275', kind: 'tool', color: '#5b7fba' },
     { id: 'travel-observe', d: 'M 589 310 H 625', kind: 'tool', color: '#5b7fba' },
-    { id: 'travel-return', d: 'M 685 344 V 364 Q 685 380 669 380 H 471 Q 455 380 455 364 V 246 Q 455 230 471 230 H 498 Q 510 230 510 218', kind: 'tool', color: '#5b7fba' },
+    { id: 'travel-return', d: 'M 685 344 V 364 Q 685 380 669 380 H 471 Q 455 380 455 364 V 258 Q 455 242 471 242 H 498 Q 510 242 510 230 V 219', kind: 'tool', color: '#5b7fba' },
     { id: 'travel-next', d: 'M 840 146 V 62 Q 840 46 824 46 H 104 Q 88 46 88 62 V 145', kind: 'feedback', color: '#3c9b76' },
 ];
 ---
@@ -41,9 +41,9 @@ const routes = [
 				<defs>
 					<pattern id="trace-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(138,180,224,.17)" stroke-width="1"></path></pattern>
 					<filter id="trace-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.5" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
-					<marker id="arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#287fc3"></path></marker>
-					<marker id="arrow-tool" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5b7fba"></path></marker>
-					<marker id="arrow-feedback" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c9b76"></path></marker>
+					<marker id="arrow-main" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#287fc3"></path></marker>
+					<marker id="arrow-tool" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5b7fba"></path></marker>
+					<marker id="arrow-feedback" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c9b76"></path></marker>
 				</defs>
 
 				<rect width="960" height="420" fill="url(#trace-grid)" opacity=".62"></rect>

@@ -5,10 +5,10 @@ const routes = [
     { id: 'react-think', d: 'M 329 182 H 360', kind: 'main', color: '#287fc3' },
     { id: 'react-parse', d: 'M 479 182 H 510', kind: 'main', color: '#287fc3' },
     { id: 'react-finish', d: 'M 629 182 H 685', kind: 'finish', color: '#3c9b76' },
-    { id: 'react-action', d: 'M 570 218 V 234 Q 570 246 582 246 H 620 Q 632 246 632 258 V 265', kind: 'tool', color: '#5b7fba' },
+    { id: 'react-action', d: 'M 570 218 V 226 Q 570 238 582 238 H 620 Q 632 238 632 250 V 265', kind: 'tool', color: '#5b7fba' },
     { id: 'react-search', d: 'M 714 300 H 745', kind: 'tool', color: '#5b7fba' },
     { id: 'react-observe', d: 'M 805 334 V 364 Q 805 380 789 380 H 461 Q 445 380 445 364 V 335', kind: 'tool', color: '#5b7fba' },
-    { id: 'react-return', d: 'M 386 300 H 366 Q 350 300 350 284 V 254 Q 350 238 334 238 H 266 Q 250 238 250 222 V 219', kind: 'tool', color: '#5b7fba' },
+    { id: 'react-return', d: 'M 386 300 H 366 Q 350 300 350 284 V 266 Q 350 250 334 250 H 266 Q 250 250 250 238 V 219', kind: 'tool', color: '#5b7fba' },
 ];
 ---
 <section class="react-lab" aria-labelledby="react-lab-title">
@@ -36,9 +36,9 @@ const routes = [
 				<defs>
 					<pattern id="react-trace-grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(138,180,224,.17)" stroke-width="1"></path></pattern>
 					<filter id="react-trace-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.5" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
-					<marker id="react-arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#287fc3"></path></marker>
-					<marker id="react-arrow-tool" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5b7fba"></path></marker>
-					<marker id="react-arrow-finish" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c9b76"></path></marker>
+					<marker id="react-arrow-main" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#287fc3"></path></marker>
+					<marker id="react-arrow-tool" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5b7fba"></path></marker>
+					<marker id="react-arrow-finish" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c9b76"></path></marker>
 				</defs>
 
 				<rect width="960" height="420" fill="url(#react-trace-grid)" opacity=".62"></rect>

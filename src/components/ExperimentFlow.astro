@@ -4,6 +4,7 @@ interface Props { flow: ExperimentFlow }
 const { flow } = Astro.props;
 const colors = { main: '#226ca6', loop: '#536da3', finish: '#287956' };
 const height = flow.height ?? 385;
+const width = flow.width ?? 800;
 const first = flow.nodes[0];
 ---
 <section class="experiment-flow" id={flow.id} aria-labelledby={`${flow.id}-title`} data-sequence={JSON.stringify(flow.sequence)}>
@@ -18,13 +19,13 @@ const first = flow.nodes[0];
   </div>
   <div class="trace-shell">
     <div class="trace-scroll" tabindex="0" role="region" aria-label={`${flow.title}，可横向滚动`}>
-      <svg class="trace-map" viewBox={`0 0 800 ${height}`} role="group" aria-labelledby={`${flow.id}-svg-title`}>
+      <svg class="trace-map" viewBox={`0 0 ${width} ${height}`} style={`--diagram-min-width: ${flow.width ?? 760}px`} role="group" aria-labelledby={`${flow.id}-svg-title`}>
         <title id={`${flow.id}-svg-title`}>{flow.title}，可点击或用键盘选择节点</title>
         <defs>
           <pattern id={`${flow.id}-grid`} width="28" height="28" patternUnits="userSpaceOnUse"><path d="M 28 0 H 0 V 28" fill="none" stroke="rgba(138,180,224,.10)" stroke-width="1" /></pattern>
-          {Object.entries(colors).map(([kind, color]) => <marker id={`${flow.id}-arrow-${kind}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill={color} /></marker>)}
+          {Object.entries(colors).map(([kind, color]) => <marker id={`${flow.id}-arrow-${kind}`} viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill={color} /></marker>)}
         </defs>
-        <rect width="800" height={height} fill={`url(#${flow.id}-grid)`} />
+        <rect width={width} height={height} fill={`url(#${flow.id}-grid)`} />
         <text x="38" y="24" class="lane-title">FLOW / 执行流程演示</text>
         {flow.routes.map(route => <g>
           <path id={`${flow.id}-${route.id}`} data-from={route.from} data-to={route.to} d={route.d} class={`flow-route ${route.kind}`} stroke={colors[route.kind]} marker-end={`url(#${flow.id}-arrow-${route.kind})`} />
@@ -119,6 +120,7 @@ const first = flow.nodes[0];
   .trace-shell { overflow:hidden; border:1px solid var(--line); border-radius:var(--radius); background:var(--paper); }
   .trace-scroll { width:100%; overflow-x:auto; overscroll-behavior-inline:contain; }
   .trace-map { display:block; width:100%; min-width:760px; }
+  @media(max-width:700px) { .trace-map { min-width:var(--diagram-min-width); } }
   .lane-title { fill:#287fc3; font-size:9px; font-weight:700; letter-spacing:.16em; }
   .flow-route { fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   .flow-route.loop { stroke-dasharray:4 6; }
