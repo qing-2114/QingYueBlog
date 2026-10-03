@@ -21,6 +21,13 @@ Consult these guides before working on related tasks:
 - [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
 - [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
 
+## UI/UX design skill
+
+- 进行页面、组件、排版、配色、响应式、交互、动效或无障碍设计时，优先读取 `.agents/skills/ui-ux-pro-max/SKILL.md` 并使用其本地检索工具。
+- 本项目使用 Astro；实现建议使用 `--stack astro` 检索，并结合现有字体、颜色 token、圆角和间距。用户要求与本文件规则优先于检索建议。
+- 从项目根目录运行 `python -B .agents/skills/ui-ux-pro-max/scripts/search.py "<query>" --stack astro`；从其他目录运行时，先定位仓库根目录，再使用脚本的绝对路径。Windows 使用 `python`，工具仅依赖 Python 标准库。
+- 保留 `/QingYueBlog/` base path。生成全站设计方案时使用 `--design-system`，针对具体问题使用 `--domain`；核实检索结果适配本项目后再采用或持久化。
+
 ## `my-hello-agent` 项目页构建要求
 
 - 实验进度记录必须优先使用可交互动画展示；新增实验（包括 `6-experiment`）必须同步增加流程动画，不得只增加标签或大段文字。
