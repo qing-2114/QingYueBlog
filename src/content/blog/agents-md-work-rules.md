@@ -7,8 +7,6 @@ tags: ['AI Agent', 'AGENTS.md', '提示词', '工作流']
 heroImage: '../../assets/agents-md-work-rules/01-initiative.png'
 ---
 
-# 把模型应该怎样工作的规则，固定在项目上下文中。
-
 OPENAI · AGENTS.MD
 
 很多人把 **AGENTS.md** 当成项目说明书，用来记录目录、命令和代码规范。OpenAI 在 GPT-6 官方指南里给出了另一种用法：把模型应该怎样工作的规则，也固定在项目上下文中。这能很大程度发挥 GPT-6 的能力。

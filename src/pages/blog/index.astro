@@ -9,6 +9,8 @@ import { byDate, readingMinutes } from '../../utils/content';
 
 const posts = (await getCollection('blog')).sort(byDate);
 const categories = [...new Set(posts.map((post) => post.data.category))];
+const pad = (value: number) => String(value).padStart(2, '0');
+const countIn = (category: string) => posts.filter((post) => post.data.category === category).length;
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -16,36 +18,53 @@ const categories = [...new Set(posts.map((post) => post.data.category))];
   <body>
     <Header />
     <main id="main-content">
-      <header class="archive-header" data-reveal>
-        <div><p class="eyebrow">WRITING / THE ARCHIVE</p><h1>每一篇，<br /><span>都是一次探索。</span></h1></div>
-        <div class="archive-caption"><p>从一个困惑开始，到一段可以回看的记录。<br />这里收集技术实践、实验复盘和仍在生长的想法。</p><span>{posts.length.toString().padStart(2,'0')} FIELD NOTES</span></div>
+      <header class="archive-header">
+        <p class="eyebrow">WRITING&nbsp;/&nbsp;归档</p>
+        <div class="grid archive-masthead">
+          <h1>每一篇，<br /><span>都是一次探索。</span></h1>
+          <div class="archive-caption">
+            <p>从一个困惑开始，到一段可以回看的记录。这里收集技术实践、实验复盘和仍在生长的想法。</p>
+            <span class="archive-total">{pad(posts.length)} FIELD NOTES</span>
+          </div>
+        </div>
       </header>
+
       <div class="archive-layout">
         <aside class="filters" aria-labelledby="filter-heading">
-          <h2 id="filter-heading">阅读方向</h2>
+          <p class="eyebrow label-plain" id="filter-heading">阅读方向</p>
           <div class="category-list" role="group" aria-label="按分类筛选">
-            <button type="button" data-category="all" aria-pressed="true"><span>全部文章</span><small>{posts.length}</small></button>
-            {categories.map((category) => <button type="button" data-category={category} aria-pressed="false"><span>{category}</span><small>{posts.filter((post) => post.data.category === category).length}</small></button>)}
+            <button type="button" data-category="all" aria-pressed="true"><span>全部文章</span><small>{pad(posts.length)}</small></button>
+            {categories.map((category) => <button type="button" data-category={category} aria-pressed="false"><span>{category}</span><small>{pad(countIn(category))}</small></button>)}
           </div>
           <p class="filter-note">探索不同的主题，<br />找到与你有关的问题。</p>
         </aside>
+
         <section class="archive-content" aria-label="文章列表">
           <div class="archive-toolbar">
             <label class="search-label" for="post-search">搜索文章<input id="post-search" type="search" placeholder="标题、简介或标签" autocomplete="off" /></label>
             <label for="post-order">排序<select id="post-order"><option value="newest">最新发布</option><option value="oldest">最早发布</option><option value="shortest">阅读时间最短</option></select></label>
           </div>
-          <div class="results-line"><p role="status" aria-live="polite" aria-atomic="true" id="result-status">全部文章 · {posts.length} 篇记录</p><button type="button" id="reset-filters" hidden>清除筛选 ↺</button></div>
-          <noscript><p>当前展示全部文章。启用 JavaScript 后可使用搜索和分类筛选。</p></noscript>
+          <div class="results-line">
+            <p role="status" aria-live="polite" aria-atomic="true" id="result-status">全部文章 · {posts.length} 篇记录</p>
+            <button type="button" id="reset-filters" hidden>清除筛选 ↺</button>
+          </div>
+          <noscript><p class="noscript-note">当前展示全部文章。启用 JavaScript 后可使用搜索和分类筛选。</p></noscript>
           <ul class="archive-list" id="post-list">
-            {posts.map((post) => <li class="archive-item" data-category={post.data.category} data-date={post.data.pubDate.valueOf()} data-duration={readingMinutes(post.body)} data-search={`${post.data.title} ${post.data.description} ${post.data.category} ${post.data.tags.join(' ')}`.toLowerCase()}><ArticlePreview post={post} compact /></li>)}
+            {posts.map((post, i) => <li class="archive-item" data-category={post.data.category} data-date={post.data.pubDate.valueOf()} data-duration={readingMinutes(post.body)} data-search={`${post.data.title} ${post.data.description} ${post.data.category} ${post.data.tags.join(' ')}`.toLowerCase()}><ArticlePreview post={post} compact index={pad(i + 1)} /></li>)}
           </ul>
-          <div class="empty-state" id="empty-state" hidden><span class="eyebrow">NO MATCHES</span><h2>还没写到这个问题。</h2><p>试试更短的关键词，或回到全部文章。</p><button class="button" type="button" id="empty-reset">查看全部文章 →</button></div>
+          <div class="empty-state" id="empty-state" hidden>
+            <span class="eyebrow">NO MATCHES</span>
+            <h2>还没写到这个问题。</h2>
+            <p>试试更短的关键词，或回到全部文章。</p>
+            <button class="button" type="button" id="empty-reset">查看全部文章 →</button>
+          </div>
         </section>
       </div>
     </main>
     <Footer />
   </body>
 </html>
+
 <script>
   const search = document.querySelector<HTMLInputElement>('#post-search')!;
   const order = document.querySelector<HTMLSelectElement>('#post-order')!;
@@ -56,10 +75,11 @@ const categories = [...new Set(posts.map((post) => post.data.category))];
   const reset = document.querySelector<HTMLButtonElement>('#reset-filters')!;
   const empty = document.querySelector<HTMLElement>('#empty-state')!;
   let category = 'all';
+
   const renderResults = () => {
     const query = search.value.trim().toLowerCase();
     categories.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.category === category)));
-    const sorted = [...items].sort((a,b) => {
+    const sorted = [...items].sort((a, b) => {
       if (order.value === 'shortest') return Number(a.dataset.duration) - Number(b.dataset.duration) || Number(b.dataset.date) - Number(a.dataset.date);
       return order.value === 'oldest' ? Number(a.dataset.date) - Number(b.dataset.date) : Number(b.dataset.date) - Number(a.dataset.date);
     });
@@ -73,62 +93,309 @@ const categories = [...new Set(posts.map((post) => post.data.category))];
     empty.hidden = count > 0;
     reset.hidden = category === 'all' && !query && order.value === 'newest';
   };
+
   const readUrl = () => {
     const params = new URLSearchParams(location.search);
     const requested = params.get('category');
     category = categories.some((button) => button.dataset.category === requested) ? requested! : 'all';
     search.value = params.get('q') ?? params.get('tag') ?? '';
-    order.value = ['newest','oldest','shortest'].includes(params.get('order') ?? '') ? params.get('order')! : 'newest';
+    order.value = ['newest', 'oldest', 'shortest'].includes(params.get('order') ?? '') ? params.get('order')! : 'newest';
     renderResults();
   };
+
   const writeUrl = (push = false) => {
     const url = new URL(location.href);
     url.search = '';
-    if (category !== 'all') url.searchParams.set('category',category);
-    if (search.value.trim()) url.searchParams.set('q',search.value.trim());
-    if (order.value !== 'newest') url.searchParams.set('order',order.value);
-    if (url.href !== location.href) history[push ? 'pushState' : 'replaceState'](null,'',url);
+    if (category !== 'all') url.searchParams.set('category', category);
+    if (search.value.trim()) url.searchParams.set('q', search.value.trim());
+    if (order.value !== 'newest') url.searchParams.set('order', order.value);
+    if (url.href !== location.href) history[push ? 'pushState' : 'replaceState'](null, '', url);
     renderResults();
   };
+
   const clear = () => { category = 'all'; search.value = ''; order.value = 'newest'; writeUrl(true); search.focus(); };
+
   categories.forEach((button) => button.addEventListener('click', () => { category = button.dataset.category!; writeUrl(true); }));
   search.addEventListener('input', () => writeUrl());
   order.addEventListener('change', () => writeUrl(true));
-  reset.addEventListener('click',clear);
-  document.querySelector('#empty-reset')!.addEventListener('click',clear);
-  window.addEventListener('popstate',readUrl);
-  window.addEventListener('pageshow',readUrl);
+  reset.addEventListener('click', clear);
+  document.querySelector('#empty-reset')!.addEventListener('click', clear);
+  window.addEventListener('popstate', readUrl);
+  window.addEventListener('pageshow', readUrl);
   readUrl();
 </script>
+
 <style>
-  .archive-header { display: flex; justify-content: space-between; align-items: end; gap: 3rem; padding-bottom: 48px; margin-bottom: 48px; border-bottom: 1px solid var(--line); }
-  .archive-header h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2.4rem,4.4vw,4rem); line-height: 1.5; margin: 0; }
-  .archive-header h1 span { color: var(--accent); }
-  .archive-caption { max-width: 23rem; }
-  .archive-caption p { font-size: .9rem; color: var(--muted); line-height: 1.9; }
-  .archive-caption > span { color: var(--accent); font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em; }
-  .archive-layout { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 64px; }
-  .filters { position: sticky; top: 120px; align-self: start; }
-  .filters h2 { margin-bottom: 1rem; font-size: .8rem; font-weight: 400; color: var(--muted); }
-  .category-list { display: flex; flex-direction: column; gap: .3rem; }
-  .category-list button { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .55rem .8rem; min-height: 44px; border: 1px solid transparent; border-radius: var(--radius); background: transparent; color: var(--muted); font-size: .85rem; }
-  .category-list button[aria-pressed="true"] { background: var(--ink); color: white; }
-  .category-list button[aria-pressed="false"]:hover { color: var(--ink); border-color: var(--line); }
-  .category-list small { font-family: var(--font-mono); font-size: .65rem; opacity: .85; }
-  .filter-note { color: var(--muted); font-size: .75rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
-  .archive-toolbar { display: grid; grid-template-columns: minmax(0,1fr) 155px; gap: 1rem; }
-  .archive-toolbar label { color: var(--muted); font-size: .75rem; }
-  input, select { display: block; width: 100%; min-height: 48px; margin-top: .5rem; padding: .6rem .9rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); color: var(--ink); font-size: 1rem; }
-  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .results-line { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 64px; font-size: .75rem; color: var(--muted); border-bottom: 1px solid var(--line); }
-  .results-line p { margin: 0; }
-  .results-line button { flex-shrink: 0; min-height: 44px; border: 0; background: transparent; color: var(--accent); font-size: .75rem; }
-  .archive-list { list-style: none; margin: 0; padding: 0; }
-  .archive-item { padding: 32px 0; border-bottom: 1px solid var(--line); }
-  .empty-state { padding: 3rem 0; }
-  .empty-state h2 { font-family: var(--font-display); font-size: 1.7rem; font-weight: 400; }
-  .empty-state p { color: var(--muted); font-size: .9rem; }
-  @media (max-width: 1000px) { .archive-layout { grid-template-columns: 160px minmax(0,1fr); gap: 32px; } .archive-content :global(.compact) { grid-template-columns: 160px minmax(0,1fr); } }
-  @media (max-width: 760px) { .archive-header { display: block; padding-bottom: 32px; margin-bottom: 32px; } .archive-caption { margin-top: 1.5rem; } .archive-layout { grid-template-columns: 1fr; gap: 24px; } .filters { position: static; } .category-list { flex-direction: row; flex-wrap: wrap; gap: .5rem; } .category-list button { border-color: var(--line); font-size: .8rem; gap: .6rem; } .filter-note { display: none; } .archive-content :global(.compact) { grid-template-columns: 1fr; } .archive-content :global(.compact .preview-copy) { padding-top: 1rem; } .archive-toolbar { grid-template-columns: minmax(0,1fr) 140px; } }
-  @media (max-width: 420px) { .archive-toolbar { grid-template-columns: minmax(0,1fr) 118px; } select { padding-inline: .4rem; } .results-line { align-items: start; padding-top: .75rem; } }
+  .archive-header {
+    padding-bottom: var(--space-l);
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .archive-masthead {
+    align-items: end;
+  }
+  .archive-header h1 {
+    grid-column: 1 / span 7;
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: var(--step-4);
+    line-height: 1.32;
+    letter-spacing: -0.035em;
+  }
+  .archive-header h1 span {
+    color: var(--accent-text);
+  }
+  .archive-caption {
+    grid-column: 9 / -1;
+  }
+  .archive-caption p {
+    color: var(--muted);
+    font-size: var(--step--1);
+    line-height: 1.85;
+  }
+  .archive-total {
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.12em;
+  }
+
+  .archive-layout {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: var(--space-2xl);
+    padding-top: var(--space-xl);
+  }
+
+  /* --- Filters: an index column, not a control panel -------------------- */
+
+  .filters {
+    position: sticky;
+    top: 96px;
+    align-self: start;
+  }
+  .filters .eyebrow {
+    padding-bottom: var(--space-2xs);
+    border-bottom: 1px solid var(--line-ink);
+  }
+  .category-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .category-list button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs);
+    min-height: 44px;
+    padding: var(--space-2xs) 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    background: transparent;
+    font-size: var(--step--1);
+    text-align: left;
+    transition: color var(--motion-fast), padding-left var(--motion-base);
+  }
+  /* The selected category is marked with the accent bar, matching the
+     navigation's active state. */
+  .category-list button::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 2px;
+    height: 0;
+    background: var(--accent);
+    transition: height var(--motion-base);
+  }
+  .category-list button {
+    position: relative;
+  }
+  .category-list button[aria-pressed='true'] {
+    color: var(--ink);
+    font-weight: 500;
+    padding-left: var(--space-s);
+  }
+  .category-list button[aria-pressed='true']::before {
+    height: 60%;
+  }
+  .category-list button[aria-pressed='false']:hover {
+    color: var(--ink);
+    padding-left: var(--space-2xs);
+  }
+  .category-list small {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-variant-numeric: tabular-nums;
+  }
+  .filter-note {
+    margin-top: var(--space-l);
+    padding-top: var(--space-s);
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: var(--step--2);
+    line-height: 1.7;
+  }
+
+  /* --- Toolbar ---------------------------------------------------------- */
+
+  .archive-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 10rem;
+    gap: var(--space-s);
+  }
+  .archive-toolbar label {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  input,
+  select {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    margin-top: var(--space-3xs);
+    padding: 0.55rem 0.8rem;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-size: var(--step-0);
+    transition: border-color var(--motion-fast), background-color var(--motion-base);
+  }
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 0;
+    border-color: var(--accent);
+  }
+  input::placeholder {
+    color: var(--muted);
+  }
+
+  .results-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    min-height: 60px;
+    margin-bottom: var(--space-s);
+    border-bottom: 1px solid var(--line-ink);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.04em;
+  }
+  .results-line p {
+    margin: 0;
+  }
+  .results-line button {
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    color: var(--accent-text);
+    background: transparent;
+    font-size: var(--step--2);
+  }
+  .results-line button:hover {
+    text-decoration: underline;
+  }
+  .noscript-note {
+    color: var(--muted);
+    font-size: var(--step--1);
+  }
+
+  /* --- List ------------------------------------------------------------- */
+
+  .archive-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .archive-item {
+    padding-block: var(--space-l);
+    border-bottom: 1px solid var(--line);
+  }
+  .empty-state {
+    padding-block: var(--space-xl);
+  }
+  .empty-state h2 {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 400;
+  }
+  .empty-state p {
+    color: var(--muted);
+    font-size: var(--step--1);
+  }
+
+  /* --- Breakpoints ------------------------------------------------------ */
+
+  @media (max-width: 1080px) {
+    .archive-header h1,
+    .archive-caption {
+      grid-column: 1 / -1;
+    }
+    .archive-caption {
+      margin-top: var(--space-m);
+    }
+    .archive-layout {
+      grid-template-columns: 9rem minmax(0, 1fr);
+      gap: var(--space-xl);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .archive-layout {
+      grid-template-columns: 1fr;
+      gap: var(--space-m);
+      padding-top: var(--space-l);
+    }
+    .filters {
+      position: static;
+    }
+    .category-list {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0 var(--space-s);
+    }
+    /* Roomy tap targets without the accent bar, which needs a stable edge. */
+    .category-list button {
+      border-bottom: 0;
+      font-size: var(--step--1);
+      gap: var(--space-2xs);
+    }
+    .category-list button::before {
+      display: none;
+    }
+    .category-list button[aria-pressed='true'],
+    .category-list button[aria-pressed='false']:hover {
+      padding-left: 0;
+    }
+    .category-list button[aria-pressed='true'] {
+      color: var(--accent-text);
+    }
+    .filter-note {
+      display: none;
+    }
+    .archive-toolbar {
+      grid-template-columns: minmax(0, 1fr) 8.5rem;
+    }
+    .archive-item {
+      padding-block: var(--space-m);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .category-list button,
+    .category-list button::before {
+      transition: none;
+    }
+    .category-list button[aria-pressed='false']:hover {
+      padding-left: 0;
+    }
+  }
 </style>

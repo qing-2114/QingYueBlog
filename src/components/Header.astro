@@ -1,23 +1,30 @@
 ---
 import HeaderLink from './HeaderLink.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { basePath } from '../utils/content';
 ---
+
 <a class="skip-link" href="#main-content">跳到正文</a>
 <header class="site-header">
   <nav class="nav-shell" aria-label="主导航">
     <a class="brand" href={basePath} aria-label="清月博客首页">
-      <span class="brand-mark" aria-hidden="true">QY<span></span></span>
-      <span class="brand-name">清月<span>FIELD NOTES</span></span>
+      <span class="brand-mark" aria-hidden="true">QY</span>
+      <span class="brand-name">清月</span>
+      <span class="brand-note" aria-hidden="true">FIELD&nbsp;/&nbsp;LAB&nbsp;/&nbsp;NOTES</span>
     </a>
-    <div class="internal-links">
-      <HeaderLink href="/blog/">Writing</HeaderLink>
-      <HeaderLink href="/projects/">Labs</HeaderLink>
-      <HeaderLink href="/about/">About</HeaderLink>
+
+    <div class="nav-right">
+      <div class="internal-links">
+        <HeaderLink href="/blog/">Writing</HeaderLink>
+        <HeaderLink href="/projects/">Labs</HeaderLink>
+        <HeaderLink href="/about/">About</HeaderLink>
+      </div>
+      <ThemeToggle />
+      <a class="github-link" href="https://github.com/qing-2114" target="_blank" rel="noreferrer" aria-label="GitHub，打开新标签页">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="M9 19c-4 1-4-2-6-2m12 5v-3.4c0-1 .1-1.5-.5-2.1 3.2-.4 6.5-1.6 6.5-7a5.5 5.5 0 0 0-1.5-3.8 5 5 0 0 0-.1-3.7S17.2 1.6 15 3a13 13 0 0 0-6 0C6.8 1.6 5.1 2 5.1 2A5 5 0 0 0 5 5.7 5.5 5.5 0 0 0 3.5 9.5c0 5.4 3.3 6.6 6.5 7-.6.6-.5 1.4-.5 2.1V22"/></svg>
+        <span class="github-text">GitHub</span>
+      </a>
     </div>
-    <a class="github-link" href="https://github.com/qing-2114" target="_blank" rel="noreferrer" aria-label="GitHub，打开新标签页">
-      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-4 1-4-2-6-2m12 5v-3.4c0-1 .1-1.5-.5-2.1 3.2-.4 6.5-1.6 6.5-7a5.5 5.5 0 0 0-1.5-3.8 5 5 0 0 0-.1-3.7S17.2 1.6 15 3a13 13 0 0 0-6 0C6.8 1.6 5.1 2 5.1 2A5 5 0 0 0 5 5.7 5.5 5.5 0 0 0 3.5 9.5c0 5.4 3.3 6.6 6.5 7-.6.6-.5 1.4-.5 2.1V22"/></svg>
-      <span>GitHub ↗</span>
-    </a>
   </nav>
 </header>
 <script>
@@ -26,24 +33,207 @@ import { basePath } from '../utils/content';
   if (main && !main.id) main.id = 'main-content';
 </script>
 <style>
-  .site-header { position: sticky; top: 0; z-index: 30; background: var(--paper); border-bottom: 1px solid var(--line); }
-  .nav-shell { display: flex; align-items: center; justify-content: space-between; width: min(1184px, calc(100% - 80px)); min-height: 88px; margin: auto; gap: 2rem; }
-  .brand { display: inline-flex; align-items: center; gap: .75rem; color: var(--ink); text-decoration: none; }
-  .brand-mark { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--ink); font-family: var(--font-mono); font-size: .85rem; letter-spacing: -.08em; }
-  .brand-mark span { position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px; background: var(--accent); border: 2px solid var(--paper); }
-  .brand-name { font-family: var(--font-display); font-size: 1.4rem; line-height: 1.2; font-weight: 700; }
-  .brand-name > span { display: block; margin-top: .3rem; font-family: var(--font-mono); font-size: .5rem; letter-spacing: .12em; font-weight: 400; }
-  .internal-links { display: flex; gap: 2rem; }
-  .internal-links :global(a) { position: relative; display: flex; align-items: center; min-height: 44px; color: var(--muted); font-size: .9rem; text-decoration: none; }
-  .internal-links :global(a)::after { content: ''; position: absolute; bottom: 0; inset-inline: 0; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform var(--motion-slow); }
-  .internal-links :global(a.active), .internal-links :global(a:hover), .internal-links :global(a:focus-visible) { color: var(--ink); }
-  .internal-links :global(a.active)::after, .internal-links :global(a:hover)::after, .internal-links :global(a:focus-visible)::after { transform: scaleX(1); }
-  .brand-mark { transition: transform var(--motion-slow), border-color var(--motion-fast); }
-  .brand:is(:hover, :focus-visible) .brand-mark { transform: rotate(-6deg); border-color: var(--accent); }
-  .github-link svg { transition: transform var(--motion-slow); }
-  .github-link:is(:hover, :focus-visible) svg { transform: translateY(-3px); }
-  @media (prefers-reduced-motion: reduce) { .brand .brand-mark, .github-link svg { transform: none !important; } }
-  .github-link { display: inline-flex; align-items: center; min-height: 44px; gap: .5rem; color: var(--ink); font-size: .75rem; text-decoration: none; }
-  @media (max-width: 900px) { .nav-shell { width: calc(100% - 48px); gap: 1.2rem; } .internal-links { gap: 1.3rem; } }
-  @media (max-width: 600px) { .nav-shell { width: calc(100% - 40px); min-height: 76px; gap: 1rem; } .brand-name > span, .github-link span { display: none; } .brand-mark { width: 32px; height: 32px; font-size: .7rem; } .brand-name { font-size: 1.2rem; } .brand { gap: .4rem; } .internal-links { gap: .9rem; margin-left: auto; } .internal-links :global(a) { font-size: .8rem; } .github-link { display: none; } }
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    transition: background-color var(--motion-base), border-color var(--motion-base);
+  }
+  .nav-shell {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    width: min(var(--page-max), 100%);
+    margin-inline: auto;
+    padding-inline: var(--page-pad);
+    min-height: 68px;
+    gap: var(--space-l);
+  }
+
+  /* Brand: monogram tile + wordmark + a mono descriptor that reads as a
+     caption in the drawing set rather than a second logo. */
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding-right: var(--space-m);
+    color: var(--ink);
+    text-decoration: none;
+    border-right: 1px solid var(--line);
+  }
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    color: var(--paper);
+    background: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .brand-name {
+    font-family: var(--font-display);
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .brand-note {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-m);
+  }
+  .internal-links {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-m);
+  }
+  .internal-links :global(a) {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.06em;
+    text-decoration: none;
+  }
+  /* Active/hover is a full-height accent rule, not an underline — it reads as
+     the selected column in a grid. */
+  .internal-links :global(a)::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -1px;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--motion-base);
+  }
+  .internal-links :global(a.active),
+  .internal-links :global(a:hover),
+  .internal-links :global(a:focus-visible) {
+    color: var(--ink);
+  }
+  .internal-links :global(a.active)::after,
+  .internal-links :global(a:hover)::after,
+  .internal-links :global(a:focus-visible)::after {
+    transform: scaleX(1);
+  }
+
+  .brand-mark {
+    transition: background-color var(--motion-base);
+  }
+  .brand:is(:hover, :focus-visible) .brand-mark {
+    background: var(--accent);
+  }
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .github-link:hover {
+    color: var(--accent-text);
+  }
+  .github-link svg {
+    transition: transform var(--motion-base);
+  }
+  .github-link:is(:hover, :focus-visible) svg {
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .github-link svg,
+    .internal-links :global(a)::after {
+      transition: none;
+    }
+    .github-link:is(:hover, :focus-visible) svg {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 1080px) {
+    .brand-note {
+      display: none;
+    }
+    .nav-right,
+    .internal-links {
+      gap: var(--space-s);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .nav-shell {
+      min-height: 60px;
+      gap: var(--space-s);
+    }
+    .brand {
+      padding-right: var(--space-s);
+      gap: var(--space-2xs);
+    }
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      font-size: 0.66rem;
+    }
+    .brand-name {
+      font-size: 1.05rem;
+    }
+    .github-text {
+      display: none;
+    }
+    .internal-links :global(a) {
+      font-size: 0.82rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .nav-shell {
+      gap: var(--space-2xs);
+    }
+    .brand {
+      padding-right: var(--space-xs);
+    }
+    .nav-right {
+      gap: var(--space-3xs);
+    }
+    .internal-links {
+      gap: var(--space-2xs);
+    }
+    .github-link {
+      min-width: 40px;
+    }
+    .internal-links :global(a) {
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+    }
+  }
+
+  /* The wordmark alone carries the home link on the narrowest phones. */
+  @media (max-width: 400px) {
+    .brand-mark {
+      display: none;
+    }
+  }
 </style>

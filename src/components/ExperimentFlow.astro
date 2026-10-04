@@ -2,10 +2,13 @@
 import type { ExperimentFlow } from '../data/experiment-flows';
 interface Props { flow: ExperimentFlow }
 const { flow } = Astro.props;
-const colors = { main: '#226ca6', loop: '#536da3', finish: '#287956' };
 const height = flow.height ?? 385;
 const width = flow.width ?? 800;
 const first = flow.nodes[0];
+// Diagram colours live in CSS (see global.css --diagram-*). SVG presentation
+// attributes cannot resolve var(), so every coloured part below carries a
+// class instead of an inline fill/stroke.
+const kinds = ['main', 'loop', 'finish'] as const;
 ---
 <section class="experiment-flow" id={flow.id} aria-labelledby={`${flow.id}-title`} data-sequence={JSON.stringify(flow.sequence)}>
   <div class="lab-heading">
@@ -13,34 +16,54 @@ const first = flow.nodes[0];
     <span class="run-state">{flow.status}</span>
   </div>
   <p class="lab-summary">{flow.summary}</p>
+
   <div class="trace-toolbar">
-    <div class="trace-legend"><span class="main">{flow.legend?.main ?? '主执行链'}</span><span class="loop">{flow.legend?.loop ?? '迭代回环'}</span><span class="finish">{flow.legend?.finish ?? '结束分支'}</span></div>
+    <div class="trace-legend">
+      <span class="main">{flow.legend?.main ?? '主执行链'}</span>
+      <span class="loop">{flow.legend?.loop ?? '迭代回环'}</span>
+      <span class="finish">{flow.legend?.finish ?? '结束分支'}</span>
+    </div>
     <button class="play-toggle" type="button" aria-pressed="true">暂停演示</button>
   </div>
+
   <div class="trace-shell">
     <div class="trace-scroll" tabindex="0" role="region" aria-label={`${flow.title}，可横向滚动`}>
       <svg class="trace-map" viewBox={`0 0 ${width} ${height}`} style={`--diagram-min-width: ${flow.width ?? 760}px`} role="group" aria-labelledby={`${flow.id}-svg-title`}>
         <title id={`${flow.id}-svg-title`}>{flow.title}，可点击或用键盘选择节点</title>
         <defs>
-          <pattern id={`${flow.id}-grid`} width="28" height="28" patternUnits="userSpaceOnUse"><path d="M 28 0 H 0 V 28" fill="none" stroke="rgba(138,180,224,.10)" stroke-width="1" /></pattern>
-          {Object.entries(colors).map(([kind, color]) => <marker id={`${flow.id}-arrow-${kind}`} viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill={color} /></marker>)}
+          <pattern id={`${flow.id}-grid`} width="28" height="28" patternUnits="userSpaceOnUse">
+            <path class="diagram-grid-line" d="M 28 0 H 0 V 28" fill="none" stroke-width="1" />
+          </pattern>
+          {kinds.map((kind) => (
+            <marker id={`${flow.id}-arrow-${kind}`} viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+              <path class={`arrow-${kind}`} d="M 0 0 L 10 5 L 0 10 z" />
+            </marker>
+          ))}
         </defs>
+
         <rect width={width} height={height} fill={`url(#${flow.id}-grid)`} />
         <text x="38" y="24" class="lane-title">FLOW / 执行流程演示</text>
-        {flow.routes.map(route => <g>
-          <path id={`${flow.id}-${route.id}`} data-from={route.from} data-to={route.to} d={route.d} class={`flow-route ${route.kind}`} stroke={colors[route.kind]} marker-end={`url(#${flow.id}-arrow-${route.kind})`} />
-          {route.label && <text x={route.x} y={route.y} class="route-label" fill={colors[route.kind]}>{route.label}</text>}
-          <circle class="packet" r="3" fill={colors[route.kind]}><animateMotion dur="3.2s" repeatCount="indefinite"><mpath href={`#${flow.id}-${route.id}`} /></animateMotion></circle>
-        </g>)}
-        {flow.nodes.map((node, i) => <g class:list={['flow-node', node.kind, { active: i === 0 }]} data-node={node.id} data-title={node.label} data-detail={node.detail} data-file={node.file} data-index={String(i + 1).padStart(2, '0')} tabindex="0" role="button" aria-pressed={i === 0 ? 'true' : 'false'} aria-label={node.label}>
-          <rect x={node.x} y={node.y} width="140" height="64" rx="6" />
-          <text x={node.x + 14} y={node.y + 20} class="node-index">{String(i + 1).padStart(2, '0')} · {node.tag}</text>
-          <text x={node.x + 70} y={node.y + 43} class="node-label">{node.label}</text>
-        </g>)}
+
+        {flow.routes.map(route => (
+          <g>
+            <path id={`${flow.id}-${route.id}`} data-from={route.from} data-to={route.to} d={route.d} class={`flow-route ${route.kind}`} marker-end={`url(#${flow.id}-arrow-${route.kind})`} />
+            {route.label && <text x={route.x} y={route.y} class={`route-label label-${route.kind}`}>{route.label}</text>}
+            <circle class={`packet packet-${route.kind}`} r="3"><animateMotion dur="3.2s" repeatCount="indefinite"><mpath href={`#${flow.id}-${route.id}`} /></animateMotion></circle>
+          </g>
+        ))}
+
+        {flow.nodes.map((node, i) => (
+          <g class:list={['flow-node', node.kind, { active: i === 0 }]} data-node={node.id} data-title={node.label} data-detail={node.detail} data-file={node.file} data-index={String(i + 1).padStart(2, '0')} tabindex="0" role="button" aria-pressed={i === 0 ? 'true' : 'false'} aria-label={node.label}>
+            <rect x={node.x} y={node.y} width="140" height="64" rx="0" />
+            <text x={node.x + 14} y={node.y + 20} class="node-index">{String(i + 1).padStart(2, '0')} · {node.tag}</text>
+            <text x={node.x + 70} y={node.y + 43} class="node-label">{node.label}</text>
+          </g>
+        ))}
       </svg>
     </div>
     <div class="trace-detail" aria-live="off"><span class="detail-index">01</span><div><strong class="detail-title">{first.label}</strong><p class="detail-copy">{first.detail}</p></div><code class="detail-file">{first.file}</code></div>
   </div>
+
   <details class="implementation-details">
     <summary>源码与流程说明</summary>
     {flow.methods && <dl class="method-list" aria-label={`${flow.title} 的扩展方法`}>
@@ -92,56 +115,388 @@ const first = flow.nodes[0];
 </script>
 
 <style>
-  .experiment-flow { width:100%; min-width:0; margin:2.4rem 0; padding:1.35rem; overflow:hidden; scroll-margin-top:6rem; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); box-shadow:none; }
-  .lab-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.65rem; }
-  .eyebrow { margin:0 0 .3rem; color:var(--accent); font-size:.66rem; font-weight:700; letter-spacing:.16em; }
-  .lab-heading h2 { margin:0; font-size:1.55rem; }
-  .run-state { color:var(--muted); font-size:.7rem; white-space:nowrap; }
-  .lab-summary { margin:0 0 .9rem; color:var(--muted); font-size:.8rem; line-height:1.65; }
-  .implementation-details { margin-top:.8rem; font-size:.78rem; color:var(--muted); }
-  .implementation-details summary { width:fit-content; cursor:pointer; padding:.25rem 0; color:var(--accent-dark); }
-  .implementation-details summary:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
-  .implementation-details[open] summary { margin-bottom:.5rem; }
-  .method-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 0 .9rem; border-top:1px solid var(--line); }
-  .method-list div { display:grid; grid-template-columns:minmax(9rem,.8fr) 1.2fr; gap:.65rem; min-width:0; padding:.52rem 0; border-bottom:1px solid var(--line); }
-  .method-list div:nth-child(odd) { padding-right:.75rem; }
-  .method-list div:nth-child(even) { padding-left:.75rem; border-left:1px solid var(--line); }
-  .method-list dt { min-width:0; overflow-wrap:anywhere; color:var(--accent-dark); font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.67rem; font-weight:700; }
-  .method-list dd { min-width:0; margin:0; color:var(--muted); font-size:.68rem; line-height:1.45; }
-  .trace-toolbar { display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin-bottom:.7rem; }
-  .trace-legend { display:flex; flex-wrap:wrap; gap:.55rem 1rem; color:var(--muted); font-size:.75rem; }
-  .trace-legend span { display:inline-flex; align-items:center; gap:.38rem; }
-  .trace-legend span::before { content:''; width:20px; border-top:2px solid #226ca6; }
-  .trace-legend .loop::before { border-color:#536da3; border-top-style:dashed; }
-  .trace-legend .finish::before { border-color:#287956; border-top-style:dotted; }
-  .play-toggle { border:1px solid var(--line); border-radius:6px; background:rgba(255,255,255,.8); color:var(--accent-dark); font:inherit; font-size:.78rem; padding:.3rem .7rem; cursor:pointer; white-space:nowrap; min-height:44px; }
-  .play-toggle:hover { background:rgba(91,163,224,.12); }
-  .play-toggle:focus-visible, .trace-scroll:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
-  .trace-shell { overflow:hidden; border:1px solid var(--line); border-radius:var(--radius); background:var(--paper); }
-  .trace-scroll { width:100%; overflow-x:auto; overscroll-behavior-inline:contain; }
-  .trace-map { display:block; width:100%; min-width:760px; }
-  @media(max-width:700px) { .trace-map { min-width:var(--diagram-min-width); } }
-  .lane-title { fill:#287fc3; font-size:9px; font-weight:700; letter-spacing:.16em; }
-  .flow-route { fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-  .flow-route.loop { stroke-dasharray:4 6; }
-  .flow-route.finish { stroke-dasharray:2 6; }
-  .route-label { font-size:11px; font-weight:500; text-anchor:middle; paint-order:stroke; stroke:#f5faff; stroke-width:5px; stroke-linejoin:round; }
-  .flow-node { cursor:pointer; outline:none; }
-  .flow-node rect { fill:rgba(255,255,255,.94); stroke:rgba(138,180,224,.8); stroke-width:1.4; transition:fill .25s,stroke .25s; }
-  .flow-node.finish rect { stroke:rgba(60,155,118,.7); }
-  .flow-node text { font-family:var(--font-atkinson); pointer-events:none; }
-  .node-index { fill:var(--muted); font-size:10px; font-weight:700; letter-spacing:.06em; }
-  .node-label { fill:var(--ink); font-size:14px; font-weight:700; text-anchor:middle; }
-  .flow-node:hover rect { fill:rgba(91,163,224,.1); }
-  .flow-node.active rect, .flow-node:focus-visible rect { fill:rgba(91,163,224,.16); stroke:var(--accent); stroke-width:2.4;  }
-  .trace-detail { display:flex; align-items:center; gap:.7rem; min-height:86px; padding:.7rem .9rem; border-top:1px solid var(--line); background:var(--surface); }
-  .detail-index { color:var(--accent); font-size:.7rem; font-weight:700; }
-  .trace-detail div { min-width:0; flex:1; }
-  .detail-title { font-size:.82rem; }
-  .detail-copy { margin:.12rem 0 0; color:var(--muted); font-size:.78rem; line-height:1.5; }
-  .detail-file { max-width:38%; overflow-wrap:anywhere; color:var(--accent-dark); font-size:.72rem; }
-  .trace-note, .experiment-record { margin:.75rem .15rem 0; color:var(--muted); font-size:.72rem; line-height:1.65; }
-  .experiment-record { padding-top:.65rem; border-top:1px solid var(--line); }
-  @media(prefers-reduced-motion:reduce) { .packet { visibility:hidden; } .flow-node rect { transition:none; } }
-  @media(max-width:700px) { .experiment-flow { padding:1rem; } .lab-heading { display:block; } .lab-heading h2 { font-size:1.3rem; } .run-state { display:block; margin-top:.5rem; } .method-list { grid-template-columns:1fr; } .method-list div { grid-template-columns:minmax(7.5rem,.8fr) 1.2fr; padding:.5rem 0; } .method-list div:nth-child(odd), .method-list div:nth-child(even) { padding-left:0; padding-right:0; border-left:0; } .trace-toolbar { align-items:flex-start; } .trace-legend { gap:.4rem .6rem; } .trace-detail { align-items:flex-start; flex-wrap:wrap; min-height:122px; } .detail-file { max-width:100%; width:100%; margin-left:1.4rem; } }
+  .experiment-flow {
+    width: 100%;
+    min-width: 0;
+    margin: var(--space-xl) 0;
+    padding: var(--space-m);
+    overflow: hidden;
+    scroll-margin-top: 6rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    transition: background-color var(--motion-base), border-color var(--motion-base);
+  }
+  .lab-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    margin-bottom: var(--space-2xs);
+  }
+  .eyebrow {
+    margin: 0 0 var(--space-3xs);
+    color: var(--accent-text);
+    font-size: 0.66rem;
+    font-weight: 500;
+  }
+  .lab-heading h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 400;
+  }
+  .run-state {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    white-space: nowrap;
+  }
+  .lab-summary {
+    margin: 0 0 var(--space-s);
+    color: var(--muted);
+    font-size: var(--step--2);
+    line-height: 1.7;
+  }
+  .implementation-details {
+    margin-top: var(--space-s);
+    color: var(--muted);
+    font-size: var(--step--2);
+  }
+  .implementation-details summary {
+    width: fit-content;
+    padding: var(--space-3xs) 0;
+    color: var(--accent-text);
+    cursor: pointer;
+  }
+  .implementation-details summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .implementation-details[open] summary {
+    margin-bottom: var(--space-2xs);
+  }
+  .method-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 0 var(--space-s);
+    border-top: 1px solid var(--line);
+  }
+  .method-list div {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.8fr) 1.2fr;
+    gap: var(--space-xs);
+    min-width: 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .method-list div:nth-child(odd) {
+    padding-right: var(--space-xs);
+  }
+  .method-list div:nth-child(even) {
+    padding-left: var(--space-xs);
+    border-left: 1px solid var(--line);
+  }
+  .method-list dt {
+    min-width: 0;
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+    font-size: 0.67rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .method-list dd {
+    min-width: 0;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.45;
+  }
+
+  /* --- Toolbar and legend ---------------------------------------------- */
+
+  .trace-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-2xs);
+  }
+  .trace-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-s);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.04em;
+  }
+  .trace-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+  }
+  .trace-legend span::before {
+    content: '';
+    width: 20px;
+    border-top: 2px solid var(--diagram-main);
+  }
+  .trace-legend .loop::before {
+    border-color: var(--diagram-loop);
+    border-top-style: dashed;
+  }
+  .trace-legend .finish::before {
+    border-color: var(--diagram-finish);
+    border-top-style: dotted;
+  }
+  .play-toggle {
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 0.35rem 0.8rem;
+    color: var(--accent-text);
+    background: transparent;
+    border: 1px solid var(--line);
+    font-size: var(--step--2);
+    transition: color var(--motion-fast), border-color var(--motion-fast);
+  }
+  .play-toggle:hover {
+    border-color: var(--accent);
+  }
+  .play-toggle:focus-visible,
+  .trace-scroll:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  /* --- Diagram surface -------------------------------------------------- */
+
+  .trace-shell {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--surface-sunk);
+    transition: background-color var(--motion-base);
+  }
+  .trace-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+  .trace-map {
+    display: block;
+    width: 100%;
+    min-width: 760px;
+  }
+  @media (max-width: 720px) {
+    .trace-map {
+      min-width: var(--diagram-min-width);
+    }
+  }
+
+  .diagram-grid-line {
+    stroke: var(--diagram-grid);
+  }
+  .lane-title {
+    fill: var(--diagram-lane);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+
+  .arrow-main {
+    fill: var(--diagram-main);
+  }
+  .arrow-loop {
+    fill: var(--diagram-loop);
+  }
+  .arrow-finish {
+    fill: var(--diagram-finish);
+  }
+
+  .flow-route {
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .flow-route.main {
+    stroke: var(--diagram-main);
+  }
+  .flow-route.loop {
+    stroke: var(--diagram-loop);
+    stroke-dasharray: 4 6;
+  }
+  .flow-route.finish {
+    stroke: var(--diagram-finish);
+    stroke-dasharray: 2 6;
+  }
+
+  /* Labels sit on a halo of the diagram surface so they stay legible where
+     a route passes behind them. */
+  .route-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: var(--surface-sunk);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+  .label-main {
+    fill: var(--diagram-main-ink);
+  }
+  .label-loop {
+    fill: var(--diagram-loop-ink);
+  }
+  .label-finish {
+    fill: var(--diagram-finish-ink);
+  }
+  .packet-main {
+    fill: var(--diagram-main);
+  }
+  .packet-loop {
+    fill: var(--diagram-loop);
+  }
+  .packet-finish {
+    fill: var(--diagram-finish);
+  }
+
+  /* --- Nodes ------------------------------------------------------------ */
+
+  .flow-node {
+    cursor: pointer;
+    outline: none;
+  }
+  .flow-node rect {
+    fill: var(--surface);
+    stroke: var(--line);
+    stroke-width: 1.4;
+    transition: fill var(--motion-fast), stroke var(--motion-fast);
+  }
+  .flow-node.finish rect {
+    stroke: var(--diagram-finish);
+  }
+  .flow-node text {
+    font-family: var(--font-atkinson);
+    pointer-events: none;
+  }
+  .node-index {
+    fill: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .node-label {
+    fill: var(--ink);
+    font-size: 14px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+  .flow-node:hover rect {
+    stroke: var(--line-strong);
+  }
+  .flow-node.active rect,
+  .flow-node:focus-visible rect {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 2.4;
+  }
+  .flow-node.active .node-label {
+    fill: var(--accent-text);
+  }
+
+  /* --- Detail strip ----------------------------------------------------- */
+
+  .trace-detail {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-height: 86px;
+    padding: var(--space-2xs) var(--space-s);
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    transition: background-color var(--motion-base);
+  }
+  .detail-index {
+    color: var(--accent-text);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 700;
+  }
+  .trace-detail div {
+    flex: 1;
+    min-width: 0;
+  }
+  .detail-title {
+    font-size: var(--step--2);
+  }
+  .detail-copy {
+    margin: 0.1rem 0 0;
+    color: var(--muted);
+    font-size: var(--step--2);
+    line-height: 1.55;
+  }
+  .detail-file {
+    max-width: 38%;
+    color: var(--accent-text);
+    background: transparent;
+    font-size: 0.7rem;
+    overflow-wrap: anywhere;
+  }
+  .trace-note,
+  .experiment-record {
+    margin: var(--space-2xs) 0 0;
+    color: var(--muted);
+    font-size: 0.7rem;
+    line-height: 1.7;
+  }
+  .experiment-record {
+    padding-top: var(--space-2xs);
+    border-top: 1px solid var(--line);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .packet {
+      visibility: hidden;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .experiment-flow {
+      padding: var(--space-s);
+    }
+    .lab-heading {
+      display: block;
+    }
+    .lab-heading h2 {
+      font-size: var(--step-0);
+    }
+    .run-state {
+      display: block;
+      margin-top: var(--space-3xs);
+    }
+    .method-list {
+      grid-template-columns: 1fr;
+    }
+    .method-list div {
+      grid-template-columns: minmax(7.5rem, 0.8fr) 1.2fr;
+      padding-left: 0;
+      padding-right: 0;
+      border-left: 0;
+    }
+    .trace-toolbar {
+      align-items: flex-start;
+      gap: var(--space-2xs);
+    }
+    .trace-detail {
+      align-items: flex-start;
+      flex-wrap: wrap;
+      min-height: 122px;
+    }
+    .detail-file {
+      width: 100%;
+      max-width: 100%;
+      margin-left: 1.4rem;
+    }
+  }
 </style>

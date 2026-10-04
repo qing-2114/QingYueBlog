@@ -13,7 +13,10 @@ const projects = (await getCollection('projects')).sort(
     (a, b) => b.data.startDate.valueOf() - a.data.startDate.valueOf(),
 );
 const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
+const pad = (value: number) => String(value).padStart(2, '0');
 const formatDate = (date: Date) => date.toLocaleDateString('zh-CN');
+const kicker = (id: string) =>
+    id === 'my-hello-agent' ? 'AGENT EXPERIMENTS / 智能体实验' : 'PRODUCT STUDY / 产品实践';
 ---
 
 <!doctype html>
@@ -24,49 +27,59 @@ const formatDate = (date: Date) => date.toLocaleDateString('zh-CN');
     <body>
         <Header />
         <main id="main-content" class="projects-page">
-            <header class="page-intro" data-reveal>
-                <p class="eyebrow">LABS / 工程实验室</p>
-                <h1>把想法，<br />做成可以运行的东西。</h1>
-                <div class="intro-bottom">
-                    <p>从智能体的执行链路，到本地工作台的产品界面。这里保留每个项目的目标、过程与阶段记录。</p>
-                    <span class="project-count">{String(projects.length).padStart(2, '0')} <span>个项目档案</span></span>
+
+            <header class="page-intro">
+                <p class="eyebrow">LABS&nbsp;/&nbsp;工程实验室</p>
+                <div class="grid intro-grid">
+                    <h1>把想法，<br />做成可以运行的东西。</h1>
+                    <div class="intro-caption">
+                        <p>从智能体的执行链路，到本地工作台的产品界面。这里保留每个项目的目标、过程与阶段记录。</p>
+                        <span class="project-total">{pad(projects.length)} 个项目档案</span>
+                    </div>
                 </div>
             </header>
 
             <section class="project-list" aria-label="项目档案">
                 {projects.map((project, index) => (
                     <article class="project-entry">
-                        <div class="project-information">
-                            <div class="entry-kicker">
-                                <span class="entry-number">{String(index + 1).padStart(2, '0')}</span>
-                                <span>{project.id === 'my-hello-agent' ? 'AGENT EXPERIMENTS / 智能体实验' : 'PRODUCT STUDY / 产品实践'}</span>
-                            </div>
-                            <h2><a href={`${base}projects/${project.id}/`}>{project.data.title}</a></h2>
-                            <p class="description">{project.data.description}</p>
-                            <div class="entry-meta">
-                                <span class:list={['status', project.data.status]}><i aria-hidden="true"></i>{project.data.statusLabel}</span>
-                                <span>更新于 {formatDate(project.data.updatedDate ?? project.data.startDate)}</span>
-                            </div>
-                            <ul class="tags" aria-label="项目技术标签">
-                                {project.data.tags.slice(0, 5).map((tag) => <li>{tag}</li>)}
-                            </ul>
-                            <a class="project-link" href={`${base}projects/${project.id}/`}>
-                                {project.id === 'my-hello-agent' ? '探索实验链路' : '查看项目档案'} <span aria-hidden="true">↗</span>
-                            </a>
+                        <div class="entry-head">
+                            <span class="entry-number">{pad(index + 1)}</span>
+                            <span class="entry-kicker">{kicker(project.id)}</span>
+                            <span class="entry-updated">更新于 {formatDate(project.data.updatedDate ?? project.data.startDate)}</span>
                         </div>
-                        {project.id === 'grok-build-web' ? (
-                            <a class="project-preview" href={`${base}projects/${project.id}/`} aria-label="查看 Grok Build Web 项目">
-                                <Image src={workbench} alt="Grok Build Web 的项目栏、流式对话与底部输入坞" width={960} loading="lazy" />
-                                <span class="preview-caption">界面实录 · 本地 Web 工作台 <span aria-hidden="true">↗</span></span>
-                            </a>
-                        ) : project.id === 'my-hello-agent' ? (
-                            <div class="experiment-preview">
-                                <ExperimentFlow flow={langGraphFlow} />
+
+                        <div class="entry-body">
+                            <div class="entry-information">
+                                <h2><a href={`${base}projects/${project.id}/`}>{project.data.title}</a></h2>
+                                <p class="description">{project.data.description}</p>
+                                <div class="entry-meta">
+                                    <span class:list={['status', project.data.status]}><i aria-hidden="true"></i>{project.data.statusLabel}</span>
+                                </div>
+                                <ul class="tags" aria-label="项目技术标签">
+                                    {project.data.tags.slice(0, 5).map((tag) => <li>{tag}</li>)}
+                                </ul>
+                                <a class="text-link" href={`${base}projects/${project.id}/`}>
+                                    {project.id === 'my-hello-agent' ? '探索实验链路' : '查看项目档案'} <span aria-hidden="true">→</span>
+                                </a>
                             </div>
-                        ) : null}
+
+                            <div class="entry-preview">
+                                {project.id === 'grok-build-web' ? (
+                                    <a class="project-preview" href={`${base}projects/${project.id}/`} aria-label="查看 Grok Build Web 项目">
+                                        <Image src={workbench} alt="Grok Build Web 的项目栏、流式对话与底部输入坞" width={960} loading="lazy" />
+                                        <span class="preview-caption">界面实录 · 本地 Web 工作台 <span aria-hidden="true">↗</span></span>
+                                    </a>
+                                ) : project.id === 'my-hello-agent' ? (
+                                    <div class="experiment-preview">
+                                        <ExperimentFlow flow={langGraphFlow} />
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
                     </article>
                 ))}
             </section>
+
             <p class="lab-footnote">项目会随实践更新。流程演示、实现状态与验证记录，以各项目档案中的说明为准。</p>
         </main>
         <Footer />
@@ -75,152 +88,184 @@ const formatDate = (date: Date) => date.toLocaleDateString('zh-CN');
 
 <style>
     .projects-page {
-        padding-top: clamp(3rem, 7vw, 6rem);
+        padding-top: clamp(1.5rem, 4vw, 3rem);
     }
+
+    /* --- Intro ------------------------------------------------------------ */
+
     .page-intro {
-        padding-bottom: 3.5rem;
-    }
-    .eyebrow, .entry-kicker {
-        color: var(--accent);
-        font-family: var(--font-mono, monospace);
-        font-size: .75rem;
-        letter-spacing: .09em;
-    }
-    .eyebrow {
-        margin-bottom: 1.4rem;
+        padding-bottom: var(--space-2xl);
+        border-bottom: 1px solid var(--line-ink);
     }
     .page-intro h1 {
+        grid-column: 1 / span 7;
+        margin: 0;
         font-family: var(--font-display);
         font-weight: 400;
-        margin: 0 0 2rem;
-        font-size: clamp(2.5rem, 6vw, 4.5rem);
-        line-height: 1.5;
-        letter-spacing: -.04em;
+        font-size: var(--step-4);
+        line-height: 1.3;
+        letter-spacing: -0.035em;
     }
-    .intro-bottom {
-        display: flex;
-        justify-content: space-between;
-        align-items: end;
-        gap: 2rem;
+    .intro-caption {
+        grid-column: 9 / -1;
+        align-self: end;
     }
-    .intro-bottom p {
-        max-width: 36rem;
-        margin: 0;
+    .intro-caption p {
         color: var(--muted);
+        font-size: var(--step--1);
+        line-height: 1.85;
     }
-    .project-count {
-        flex-shrink: 0;
-        color: var(--ink);
-        font-family: var(--font-mono, monospace);
-        font-size: 2.3rem;
-        line-height: 1;
-    }
-    .project-count span {
-        margin-left: .5rem;
-        color: var(--muted);
-        font-size: .8rem;
-    }
-    .project-entry {
-        display: grid;
-        grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
-        align-items: center;
-        gap: clamp(2rem, 4vw, 4rem);
-        padding: 3rem 0;
+    .project-total {
+        display: block;
+        margin-top: var(--space-s);
+        padding-top: var(--space-2xs);
         border-top: 1px solid var(--line);
+        color: var(--accent-text);
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
+        letter-spacing: 0.12em;
     }
-    .entry-kicker {
+
+    /* --- Entries ---------------------------------------------------------- */
+
+    /* The head is a full-width tab strip: number, kind, date — the same
+       "spec line" used on the article page. */
+    .project-entry {
+        padding-block: var(--space-xl);
+        border-bottom: 1px solid var(--line-ink);
+    }
+    .entry-head {
         display: flex;
-        gap: .9rem;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        font-size: .7rem;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: var(--space-2xs) var(--space-m);
+        margin-bottom: var(--space-l);
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
+        letter-spacing: 0.1em;
     }
     .entry-number {
-        color: var(--muted);
+        color: var(--accent-text);
+        font-size: var(--step-1);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0;
+        line-height: 1;
+    }
+    .entry-kicker {
+        color: var(--ink);
+    }
+    .entry-updated {
+        margin-left: auto;
+    }
+
+    .entry-body {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        align-items: start;
+        gap: clamp(2rem, 4vw, 4rem);
+    }
+    .entry-information {
+        min-width: 0;
     }
     .project-entry h2 {
-        margin: 0 0 1rem;
-        font-size: clamp(1.7rem, 3vw, 2.5rem);
-        letter-spacing: -.03em;
+        margin: 0 0 var(--space-s);
+        font-family: var(--font-display);
+        font-size: var(--step-3);
+        font-weight: 400;
+        letter-spacing: -0.03em;
     }
     .project-entry h2 a {
         color: var(--ink);
         text-decoration: none;
+        transition: color var(--motion-fast);
     }
     .project-entry h2 a:hover {
-        color: var(--accent);
+        color: var(--accent-text);
     }
     .description {
         color: var(--muted);
-        font-size: .95rem;
+        font-size: var(--step--1);
         line-height: 1.85;
     }
     .entry-meta {
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
-        margin: 1.5rem 0 1rem;
+        gap: var(--space-s);
+        margin: var(--space-m) 0 var(--space-s);
         color: var(--muted);
-        font-size: .78rem;
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
     }
     .status {
         display: inline-flex;
         align-items: center;
-        gap: .4rem;
+        gap: var(--space-3xs);
         color: var(--ink);
     }
     .status i {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
+        width: 7px;
+        height: 7px;
         background: var(--accent);
+    }
+    .status.completed i {
+        background: var(--success);
+    }
+    .status.paused i {
+        background: var(--signal);
     }
     .tags {
         display: flex;
         flex-wrap: wrap;
-        gap: .5rem;
-        margin: 0 0 1.4rem;
+        gap: var(--space-3xs);
+        margin: 0 0 var(--space-m);
         padding: 0;
         list-style: none;
     }
     .tags li {
-        padding: .2rem .5rem;
-        border: 1px solid var(--line);
-        border-radius: 3px;
+        padding: 0.15rem 0.5rem;
         color: var(--muted);
-        font-size: .72rem;
+        border: 1px solid var(--line);
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
     }
-    .project-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 1.5rem;
-        min-height: 44px;
-        color: var(--accent);
-        font-size: .88rem;
-        font-weight: 700;
-        text-decoration: none;
+
+    /* --- Preview ---------------------------------------------------------- */
+
+    .entry-preview {
+        min-width: 0;
     }
     .project-preview {
         display: block;
         overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: var(--radius, 6px);
-        background: var(--surface, white);
         color: var(--muted);
+        background: var(--plate);
+        border: 1px solid var(--line);
         text-decoration: none;
+        transition: border-color var(--motion-fast);
     }
     .project-preview :global(img) {
         display: block;
         width: 100%;
         height: auto;
-        border-radius: 0;
+        transition: transform var(--motion-slow);
     }
     .preview-caption {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        padding: 1rem 1.2rem;
+        gap: var(--space-s);
+        padding: var(--space-2xs) var(--space-s);
+        background: var(--surface);
         border-top: 1px solid var(--line);
-        font-size: .78rem;
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
+    }
+    .project-preview:is(:hover, :focus-visible) {
+        border-color: var(--accent);
+    }
+    .project-preview:is(:hover, :focus-visible) :global(img) {
+        transform: scale(1.02);
     }
     .experiment-preview {
         min-width: 0;
@@ -228,28 +273,67 @@ const formatDate = (date: Date) => date.toLocaleDateString('zh-CN');
     .experiment-preview :global(.experiment-flow) {
         margin: 0;
     }
+
     .lab-footnote {
-        margin: 1rem 0 0;
-        padding-top: 1.5rem;
+        margin: var(--space-l) 0 0;
+        padding-top: var(--space-s);
         border-top: 1px solid var(--line);
         color: var(--muted);
-        font-size: .8rem;
+        font-size: var(--step--2);
+        line-height: 1.75;
     }
-    @media (max-width: 840px) {
-        .project-entry {
+
+    /* --- Breakpoints ------------------------------------------------------ */
+
+    @media (max-width: 1080px) {
+        .page-intro h1,
+        .intro-caption {
+            grid-column: 1 / -1;
+        }
+        .intro-caption {
+            margin-top: var(--space-m);
+        }
+        .project-total {
+            display: inline-block;
+            margin-top: 0;
+            margin-left: var(--space-s);
+            padding-top: 0;
+            border-top: 0;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .entry-body {
             grid-template-columns: minmax(0, 1fr);
+            gap: var(--space-l);
         }
     }
-    @media (max-width: 560px) {
-        .intro-bottom {
-            align-items: start;
-            flex-direction: column;
-        }
+
+    @media (max-width: 720px) {
         .page-intro {
-            padding-bottom: 2rem;
+            padding-bottom: var(--space-xl);
         }
         .project-entry {
-            padding: 2rem 0;
+            padding-block: var(--space-l);
+        }
+        .entry-updated {
+            margin-left: 0;
+            flex-basis: 100%;
+        }
+        .project-total {
+            display: block;
+            margin-left: 0;
+            margin-top: var(--space-2xs);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .project-entry h2 a,
+        .project-preview :global(img) {
+            transition: none;
+        }
+        .project-preview:is(:hover, :focus-visible) :global(img) {
+            transform: none;
         }
     }
 </style>

@@ -10,40 +10,169 @@ const links = [
   { title: 'GitHub', detail: '代码与实践', href: 'https://github.com/qing-2114', external: true },
 ];
 ---
+
 <footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-top" data-reveal>
-      <div class="footer-copy">
-        <p class="eyebrow">KEEP EXPLORING</p>
-        <h2>保持好奇，<br />让探索继续。</h2>
-        {showStudioNote && <p class="studio-note">这里是一间持续开放的数字工作室。<br />有想通的事，也有还在调试的想法。</p>}
-      </div>
+  <div class="container">
+    <div class="footer-top">
+      {showStudioNote && (
+        <div class="footer-copy">
+          <p class="eyebrow">KEEP EXPLORING</p>
+          <h2>保持好奇，<br />让探索继续。</h2>
+          <p class="studio-note">这里是一间持续开放的数字工作室。<br />有想通的事，也有还在调试的想法。</p>
+        </div>
+      )}
       <nav class="footer-links" aria-label="页脚导航">
-        {links.map(link => <a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noreferrer' : undefined}>
-          <span class="link-title">{link.title}<span class="link-arrow" aria-hidden="true">↗</span></span>
-          <span class="link-detail">{link.detail}{link.external && <span class="sr-only">，打开新标签页</span>}</span>
-        </a>)}
+        {links.map(link => (
+          <a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noreferrer' : undefined}>
+            <span class="link-title">{link.title}</span>
+            <span class="link-detail">{link.detail}{link.external && <span class="sr-only">，打开新标签页</span>}<span class="link-arrow" aria-hidden="true">↗</span></span>
+          </a>
+        ))}
       </nav>
     </div>
-    <div class="footer-bottom"><span>© {year} 清月 · 记录思考，留下实践。</span><span>Built with Astro · Shenzhen</span><a href="#main-content">回到顶部 ↑</a></div>
+    <div class="footer-bottom">
+      <span>© {year} 清月 · 记录思考，留下实践。</span>
+      <span>Built with Astro · Shenzhen</span>
+      <a href="#main-content">回到顶部 ↑</a>
+    </div>
   </div>
 </footer>
+
 <style>
-  .site-footer { background: var(--paper); }
-  .footer-inner { width: min(1184px, calc(100% - 80px)); margin: auto; padding: 3rem 0 1rem; border-top: 1px solid var(--line); }
-  .footer-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .65fr); align-items: center; gap: 3rem; padding-bottom: 2.5rem; }
-  h2 { margin: 0; font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.35rem); font-weight: 400; line-height: 1.55; letter-spacing: -.03em; }
-  .studio-note { margin: 1.1rem 0 0; color: var(--muted); font-size: .88rem; line-height: 1.9; }
-  .footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.15rem 2rem; }
-  .footer-links a { display: flex; flex-direction: column; justify-content: center; min-height: 64px; padding: .4rem 0; text-decoration: none; color: var(--ink); }
-  .link-title { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: .95rem; }
-  .link-arrow { color: var(--muted); transition: transform var(--motion-slow), color var(--motion-fast); }
-  .link-detail { margin-top: .15rem; color: var(--muted); font-size: .75rem; }
-  .footer-links a:is(:hover, :focus-visible) { color: var(--accent); }
-  .footer-links a:is(:hover, :focus-visible) .link-arrow { color: var(--accent); transform: translate(3px, -3px); }
-  .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 2rem; padding-top: 1.3rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .7rem; }
-  .footer-bottom a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
-  @media (max-width: 900px) { .footer-inner { width: calc(100% - 48px); } .footer-top { gap: 2rem; grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr); } .footer-links { column-gap: 1.5rem; } }
-  @media (max-width: 600px) { .footer-inner { width: calc(100% - 40px); padding-top: 2rem; } .footer-top { grid-template-columns: 1fr; gap: 1.5rem; padding-bottom: 1.5rem; } .footer-links { row-gap: .75rem; } .footer-bottom { align-items: start; gap: .25rem; flex-direction: column; } }
-  @media (prefers-reduced-motion: reduce) { .footer-links .link-arrow { transform: none !important; } }
+  .site-footer {
+    background: var(--paper);
+    transition: background-color var(--motion-base);
+  }
+  .footer-top {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--gutter);
+    align-items: end;
+    padding-block: var(--space-xl) var(--space-l);
+    border-top: 1px solid var(--line-ink);
+  }
+  .footer-copy {
+    grid-column: 1 / span 6;
+  }
+  .footer-top:not(:has(.footer-copy)) .footer-links {
+    grid-column: 1 / -1;
+  }
+  h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: -0.03em;
+  }
+  .footer-copy .eyebrow {
+    margin-bottom: var(--space-s);
+  }
+  .studio-note {
+    margin: var(--space-s) 0 0;
+    max-width: 32rem;
+    color: var(--muted);
+    font-size: var(--step--1);
+    line-height: 1.8;
+  }
+
+  /* Four equal columns that read as a table of contents, not buttons. */
+  .footer-links {
+    grid-column: 7 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-m);
+  }
+  .footer-links a {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    justify-content: center;
+    min-height: 60px;
+    padding: var(--space-2xs) 0;
+    color: var(--ink);
+    text-decoration: none;
+    border-top: 1px solid var(--line);
+  }
+  .link-title {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.06em;
+  }
+  .link-detail {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs);
+    color: var(--muted);
+    font-size: var(--step--2);
+  }
+  .link-arrow {
+    transition: transform var(--motion-base), color var(--motion-fast);
+  }
+  .footer-links a:is(:hover, :focus-visible) {
+    border-top-color: var(--accent);
+  }
+  .footer-links a:is(:hover, :focus-visible) .link-title {
+    color: var(--accent-text);
+  }
+  .footer-links a:is(:hover, :focus-visible) .link-arrow {
+    color: var(--accent-text);
+    transform: translate(3px, -3px);
+  }
+
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2xs) var(--space-m);
+    padding-block: var(--space-s);
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.04em;
+  }
+  .footer-bottom a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .footer-bottom a:hover {
+    color: var(--accent-text);
+  }
+
+  @media (max-width: 1080px) {
+    .footer-copy {
+      grid-column: 1 / span 12;
+      margin-bottom: var(--space-l);
+    }
+    .footer-links {
+      grid-column: 1 / span 12;
+    }
+  }
+  @media (max-width: 720px) {
+    .footer-top {
+      padding-block: var(--space-l) var(--space-m);
+    }
+    .footer-links {
+      column-gap: var(--space-s);
+    }
+    .footer-bottom {
+      flex-direction: column;
+      align-items: start;
+      gap: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .link-arrow {
+      transition: none;
+    }
+    .footer-links a:is(:hover, :focus-visible) .link-arrow {
+      transform: none;
+    }
+  }
 </style>

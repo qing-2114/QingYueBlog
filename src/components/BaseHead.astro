@@ -27,6 +27,30 @@ const { title, description, image = FallbackImage } = Astro.props;
 
 <Font cssVariable="--font-atkinson" preload />
 
+<!-- Theme. Resolved before first paint so a dark-mode reader never sees a
+     white flash: stored choice wins, otherwise follow the system. -->
+<script is:inline>
+	(() => {
+		const root = document.documentElement;
+		try {
+			const stored = localStorage.getItem('theme');
+			if (stored === 'light' || stored === 'dark') root.dataset.theme = stored;
+		} catch {
+			/* Private mode — fall through to the system preference. */
+		}
+		const dark = () =>
+			root.dataset.theme === 'dark' ||
+			(!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+		const sync = () => {
+			const meta = document.querySelector('meta[name="theme-color"]');
+			if (meta) meta.setAttribute('content', dark() ? '#0a0a0a' : '#fafafa');
+		};
+		sync();
+		matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+	})();
+</script>
+<meta name="theme-color" content="#fafafa" />
+
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
 
@@ -45,4 +69,5 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta name="twitter:card" content="summary_large_image" />
 <script>
   import '../scripts/motion';
+  import '../scripts/theme';
 </script>

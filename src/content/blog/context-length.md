@@ -6,8 +6,6 @@ category: 'AI Agent'
 tags: ['AI Agent', '上下文', '长上下文', '信息检索']
 heroImage: '../../assets/context-length/01-library-balcony.png'
 ---
-# 模型上下文越长就越好吗？
-
 模型的上下文窗口越来越长。从几千 token 到几十万 token，模型一次能够读取的内容不断增加。很多人因此认为：模型看得越多，就会越聪明。
 
 我的答案是：**上下文越长，能力上限可能越高，但实际效果不一定越好。**

@@ -31,6 +31,8 @@ const buildYearGraph = (year: number) => {
     firstDay.setDate(firstDay.getDate() - offset);
     const daysInYear = new Date(year, 1, 29).getMonth() === 1 ? 366 : 365;
     const weeks = Math.ceil((offset + daysInYear) / 7);
+    // Five steps, 0 through 4. The scale used to skip a step (0/2/3/4); it now
+    // maps one commit per level and clamps at four or more.
     const levels = Array.from({ length: weeks }, (_, week) =>
         Array.from({ length: 7 }, (_, day) => {
             const date = new Date(firstDay);
@@ -39,7 +41,7 @@ const buildYearGraph = (year: number) => {
             const inYear = date.getFullYear() === year;
             const count = inYear ? commitDates.get(key) ?? 0 : 0;
             return {
-                level: count === 0 ? 0 : count === 1 ? 2 : count === 2 ? 3 : 4,
+                level: count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count <= 4 ? 3 : 4,
                 count,
                 inYear,
                 date: key,
@@ -67,30 +69,33 @@ const yearGraphs = years.map(buildYearGraph);
     <body>
         <Header />
         <main id="main-content" class="about-page">
+
             <header class="about-intro">
-                <div class="intro-copy" data-reveal>
-                    <p class="eyebrow">ABOUT / 认识清月</p>
-                    <h1>保持好奇，<br />把问题做深一点。</h1>
-                    <p class="lead">你好，我是清月。<br />一名正在学习与实践的机器人专业学生。</p>
-                    <p class="intro-note">我关注 AI Agent、机器人与嵌入式系统。在这里记录代码、实验，也写下技术之外的观察。</p>
-                    <a class="text-link" href="https://github.com/qing-2114" target="_blank" rel="noreferrer">
-                        GitHub · qing-2114 <span aria-hidden="true">↗</span>
-                    </a>
+                <div class="grid intro-grid">
+                    <div class="intro-copy">
+                        <p class="eyebrow">ABOUT&nbsp;/&nbsp;认识清月</p>
+                        <h1>保持好奇，<br />把问题做深一点。</h1>
+                        <p class="lead">你好，我是清月。<br />一名正在学习与实践的机器人专业学生。</p>
+                        <p class="intro-note">我关注 AI Agent、机器人与嵌入式系统。在这里记录代码、实验，也写下技术之外的观察。</p>
+                        <a class="text-link" href="https://github.com/qing-2114" target="_blank" rel="noreferrer">
+                            GitHub · qing-2114 <span aria-hidden="true">↗</span>
+                        </a>
+                    </div>
+                    <aside class="profile-note" aria-label="学习方向">
+                        <p class="eyebrow label-plain">FIELD NOTES</p>
+                        <span class="profile-monogram" aria-hidden="true">清月</span>
+                        <p class="profile-caption">学习 · 实验 · 记录</p>
+                        <dl>
+                            <div><dt>学习方向</dt><dd>机器人</dd></div>
+                            <div><dt>正在关注</dt><dd>AI Agent / ROS / STM32</dd></div>
+                            <div><dt>记录方式</dt><dd>文章与交互实验</dd></div>
+                        </dl>
+                    </aside>
                 </div>
-                <aside class="profile-note" data-reveal aria-label="学习方向">
-                    <p class="eyebrow">FIELD NOTES</p>
-                    <span class="profile-monogram" aria-hidden="true">清月</span>
-                    <p class="profile-caption">学习 · 实验 · 记录</p>
-                    <dl>
-                        <div><dt>学习方向</dt><dd>机器人</dd></div>
-                        <div><dt>正在关注</dt><dd>AI Agent / ROS / STM32</dd></div>
-                        <div><dt>记录方式</dt><dd>文章与交互实验</dd></div>
-                    </dl>
-                </aside>
             </header>
 
             <section class="about-story" aria-labelledby="story-title">
-                <div class="section-label"><span>01</span> WHY I WRITE</div>
+                <p class="eyebrow section-label"><span class="index">01</span> WHY I WRITE</p>
                 <div class="story-copy">
                     <h2 id="story-title">让每一次实践，<br />留下可以回看的过程。</h2>
                     <p>写作对我来说，是一次次把问题摊开、重新理解的过程。技术文章记录方法与经验，项目档案保留目标、代码边界与阶段变化。</p>
@@ -108,7 +113,7 @@ const yearGraphs = years.map(buildYearGraph);
                         <p class="eyebrow">02 / BUILDING IN PUBLIC</p>
                         <h2 id="activity-title">持续记录的痕迹</h2>
                     </div>
-                    <p>这份博客，也在一次次提交中生长。</p>
+                    <p class="section-note">这份博客，也在一次次提交中生长。</p>
                 </div>
                 <div class="contribution-card">
                     <div class="contribution-header">
@@ -159,7 +164,7 @@ const yearGraphs = years.map(buildYearGraph);
                     </div>
                     <div class="graph-footer">
                         <span class="graph-hint">窄屏可在图内横向滚动</span>
-                        <span class="legend" aria-label="颜色由浅到深，表示 0 次、1 次、2 次和 3 次以上提交">少 <i class="level-0" aria-hidden="true"></i><i class="level-2" aria-hidden="true"></i><i class="level-3" aria-hidden="true"></i><i class="level-4" aria-hidden="true"></i> 多</span>
+                        <span class="legend" aria-label="颜色由浅到深，表示 0 次、1 次、2 次、3 到 4 次和 5 次以上提交">少 <i class="level-0" aria-hidden="true"></i><i class="level-1" aria-hidden="true"></i><i class="level-2" aria-hidden="true"></i><i class="level-3" aria-hidden="true"></i><i class="level-4" aria-hidden="true"></i> 多</span>
                     </div>
                     {yearGraphs.map((graph, index) => (
                         <details class="daily-records" data-record-year={graph.year} hidden={index !== 0}>
@@ -174,14 +179,19 @@ const yearGraphs = years.map(buildYearGraph);
             </section>
 
             <section class="values" aria-labelledby="values-title">
-                <p class="eyebrow">03 / SMALL RULES</p>
-                <h2 id="values-title">写给未来的自己</h2>
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">03 / SMALL RULES</p>
+                        <h2 id="values-title">写给未来的自己</h2>
+                    </div>
+                </div>
                 <div class="value-grid">
                     <article><span class="value-number">01</span><h3>保持好奇</h3><p>先问为什么，再决定怎么做。</p></article>
                     <article><span class="value-number">02</span><h3>诚实记录</h3><p>承认不知道，也记录走过的弯路。</p></article>
                     <article><span class="value-number">03</span><h3>慢慢变好</h3><p>让每一次小小的迭代都算数。</p></article>
                 </div>
             </section>
+
             <div class="closing-note">
                 <p>路虽远，行则将至。</p>
                 <a class="text-link" href={`${base}blog/`}>从一篇文章开始 <span aria-hidden="true">↗</span></a>
@@ -220,226 +230,222 @@ const yearGraphs = years.map(buildYearGraph);
 
 <style>
     .about-page {
-        padding-top: clamp(3rem, 7vw, 6rem);
+        padding-top: clamp(1.5rem, 4vw, 3rem);
     }
+
+    /* --- Intro ------------------------------------------------------------ */
+
     .about-intro {
-        display: grid;
-        grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr);
-        gap: clamp(2rem, 7vw, 7rem);
-        align-items: center;
-        padding-bottom: 4rem;
+        padding-bottom: var(--space-2xl);
+        border-bottom: 1px solid var(--line-ink);
     }
-    .eyebrow, .section-label {
-        color: var(--accent);
-        font-family: var(--font-mono, monospace);
-        font-size: .75rem;
-        letter-spacing: .09em;
-    }
-    .eyebrow {
-        margin: 0 0 1.4rem;
+    .intro-copy {
+        grid-column: 1 / span 7;
     }
     .intro-copy h1 {
+        margin: var(--space-m) 0;
         font-family: var(--font-display);
         font-weight: 400;
-        margin: 0 0 2rem;
-        font-size: clamp(2.5rem, 5.4vw, 4.3rem);
-        line-height: 1.5;
-        letter-spacing: -.04em;
+        font-size: var(--step-4);
+        line-height: 1.3;
+        letter-spacing: -0.035em;
     }
     .lead {
-        margin-bottom: 1rem;
+        margin-bottom: var(--space-xs);
         color: var(--ink);
-        font-size: 1.15rem;
-        line-height: 1.8;
+        font-size: var(--step-1);
+        line-height: 1.7;
     }
     .intro-note {
-        max-width: 31rem;
+        max-width: 34rem;
         color: var(--muted);
+        font-size: var(--step--1);
         line-height: 1.85;
     }
-    .text-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 1rem;
-        min-height: 44px;
-        color: var(--accent);
-        font-size: .88rem;
-        font-weight: 700;
-        text-decoration: none;
-    }
-    .text-link:hover {
-        text-decoration: underline;
-        text-underline-offset: .3em;
-    }
+
+    /* The profile card is a spec block: hairline rules, mono keys. */
     .profile-note {
-        padding: 1.7rem;
-        border: 1px solid var(--line);
-        border-radius: var(--radius, 6px);
-        background: var(--surface, white);
+        grid-column: 9 / -1;
+        align-self: end;
+        padding-top: var(--space-s);
+        border-top: 1px solid var(--line-ink);
     }
     .profile-note .eyebrow {
-        color: var(--muted);
-        font-size: .68rem;
+        margin-bottom: var(--space-s);
     }
     .profile-monogram {
         display: block;
-        padding: 1.2rem 0 .8rem;
+        padding-bottom: var(--space-2xs);
         color: var(--ink);
-        font-family: 'SimSun', 'Songti SC', serif;
-        font-size: clamp(3rem, 5vw, 4.5rem);
-        letter-spacing: .12em;
+        font-family: var(--font-display);
+        font-size: var(--step-3);
+        letter-spacing: 0.1em;
+        line-height: 1;
     }
     .profile-caption {
-        margin-bottom: 2rem;
+        margin-bottom: var(--space-m);
         color: var(--muted);
-        font-size: .85rem;
-        letter-spacing: .1em;
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
+        letter-spacing: 0.08em;
     }
     .profile-note dl {
         margin: 0;
+        border-top: 1px solid var(--line);
     }
     .profile-note dl > div {
         display: flex;
+        align-items: baseline;
         justify-content: space-between;
-        gap: 1rem;
-        padding: .8rem 0;
-        border-top: 1px solid var(--line);
-        font-size: .8rem;
+        gap: var(--space-s);
+        padding-block: var(--space-2xs);
+        border-bottom: 1px solid var(--line);
+        font-size: var(--step--2);
     }
     .profile-note dt {
         flex-shrink: 0;
         color: var(--muted);
+        font-family: var(--font-mono);
+        letter-spacing: 0.06em;
     }
     .profile-note dd {
         margin: 0;
         text-align: right;
     }
+
+    /* --- Story ------------------------------------------------------------ */
+
     .about-story {
         display: grid;
-        grid-template-columns: minmax(0, .45fr) minmax(0, 1fr);
-        gap: 3rem;
-        padding: 4rem 0;
-        border-top: 1px solid var(--line);
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: var(--gutter);
+        padding-block: var(--space-2xl);
+        border-bottom: 1px solid var(--line-ink);
     }
     .section-label {
-        padding-top: .5rem;
+        grid-column: 1 / span 3;
+        align-self: start;
+        margin: 0;
         color: var(--muted);
     }
-    .section-label span {
-        margin-right: 1rem;
-        color: var(--accent);
+    .section-label .index {
+        margin-right: var(--space-2xs);
+    }
+    .story-copy {
+        grid-column: 5 / -1;
     }
     .story-copy h2 {
-        margin: 0 0 1.5rem;
-        font-size: clamp(1.8rem, 3.5vw, 2.7rem);
-        letter-spacing: -.03em;
+        margin: 0 0 var(--space-m);
+        font-family: var(--font-display);
+        font-size: var(--step-3);
+        font-weight: 400;
         line-height: 1.35;
+        letter-spacing: -0.03em;
     }
     .story-copy p {
-        max-width: 40rem;
+        max-width: 42rem;
         color: var(--muted);
+        font-size: var(--step-0);
         line-height: 1.85;
     }
     .story-links {
         display: flex;
         flex-wrap: wrap;
-        gap: 2rem;
+        gap: var(--space-m);
+        margin-top: var(--space-s);
     }
-    .activity-section, .values {
-        padding: 4rem 0;
-        border-top: 1px solid var(--line);
+
+    /* --- Activity --------------------------------------------------------- */
+
+    .activity-section,
+    .values {
+        padding-block: var(--space-2xl);
+        border-bottom: 1px solid var(--line-ink);
     }
-    .section-heading {
-        display: flex;
-        justify-content: space-between;
-        align-items: end;
-        gap: 2rem;
-        margin-bottom: 2rem;
-    }
-    .section-heading .eyebrow, .values > .eyebrow {
-        margin-bottom: .8rem;
-    }
-    .section-heading h2, .values > h2 {
-        margin: 0;
-        font-size: clamp(1.8rem, 3vw, 2.4rem);
-        letter-spacing: -.03em;
-    }
-    .section-heading > p {
+    .section-note {
         margin: 0;
         color: var(--muted);
-        font-size: .88rem;
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
+        letter-spacing: 0.04em;
     }
+
     .contribution-card {
         min-width: 0;
-        padding: 1.5rem;
+        padding: var(--space-m);
         border: 1px solid var(--line);
-        border-radius: var(--radius, 6px);
-        background: var(--surface, white);
-        font-size: .75rem;
+        background: var(--surface);
+        font-size: var(--step--2);
+        transition: background-color var(--motion-base), border-color var(--motion-base);
     }
     .contribution-header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+        gap: var(--space-s);
+        margin-bottom: var(--space-m);
     }
     .contribution-header strong {
         color: var(--ink);
-        font-size: .95rem;
+        font-family: var(--font-mono);
+        font-size: var(--step--1);
+        font-variant-numeric: tabular-nums;
     }
     .year-list {
         display: flex;
         flex-wrap: wrap;
-        gap: .4rem;
+        gap: var(--space-3xs);
     }
     .year-list button {
-        min-width: 54px;
+        min-width: 58px;
         min-height: 44px;
-        padding: .5rem .75rem;
-        border: 1px solid var(--line);
-        border-radius: 4px;
-        background: transparent;
+        padding: 0.4rem 0.7rem;
         color: var(--muted);
-        font: inherit;
+        background: transparent;
+        border: 1px solid var(--line);
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
         font-variant-numeric: tabular-nums;
-        cursor: pointer;
-        transition: background .15s ease, color .15s ease;
+        transition: color var(--motion-fast), border-color var(--motion-fast),
+            background-color var(--motion-fast);
     }
     .year-list button:hover {
-        background: var(--paper, #f7f6f2);
         color: var(--ink);
+        border-color: var(--line-strong);
     }
     .year-list button.active {
-        border-color: var(--accent);
+        color: var(--accent-on);
         background: var(--accent);
-        color: white;
+        border-color: var(--accent);
     }
+
     .graph-scroll {
+        padding-bottom: var(--space-2xs);
         overflow-x: auto;
-        padding: .25rem .1rem .75rem;
     }
     .year-panel {
-        min-width: 680px;
+        min-width: 660px;
     }
     .month-labels {
         display: grid;
         grid-template-columns: repeat(var(--weeks), minmax(0, 1fr));
-        height: 1.7rem;
-        margin-left: 2.3rem;
+        height: 1.6rem;
+        margin-left: 2.2rem;
         color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
     }
     .graph-row {
         display: flex;
-        gap: .5rem;
+        gap: var(--space-2xs);
     }
     .day-labels {
         display: grid;
         grid-template-rows: repeat(7, 1fr);
-        flex: 0 0 1.8rem;
+        flex: 0 0 1.7rem;
         color: var(--muted);
-        font-size: .65rem;
+        font-size: 0.7rem;
         line-height: 1;
         text-align: right;
     }
@@ -458,34 +464,50 @@ const yearGraphs = years.map(buildYearGraph);
         grid-template-rows: repeat(7, minmax(0, 1fr));
         gap: 3px;
     }
-    .contribution-grid span, .legend i {
+    /* Geometry only. The fill comes from the level classes below — putting a
+       background here would out-specify them and flatten the whole scale. */
+    .contribution-grid span,
+    .legend i {
         display: block;
         aspect-ratio: 1;
         min-width: 0;
-        border: 1px solid var(--line);
-        border-radius: 2px;
     }
     .contribution-grid span.outside {
         visibility: hidden;
     }
-    .level-0 {
-        background: var(--paper, #f7f6f2);
+
+    /* Five steps, 0 through 4. Each colour is a token, so the scale follows
+       the theme. These must out-rank no other background rule. */
+    .contribution-grid .level-0,
+    .legend .level-0 {
+        background: var(--heat-0);
     }
-    .level-2 {
-        background: #b8d1f1;
+    .contribution-grid .level-1,
+    .legend .level-1 {
+        background: var(--heat-1);
     }
-    .level-3 {
-        background: #6898dc;
+    .contribution-grid .level-2,
+    .legend .level-2 {
+        background: var(--heat-2);
     }
-    .level-4 {
-        background: var(--accent);
+    .contribution-grid .level-3,
+    .legend .level-3 {
+        background: var(--heat-3);
     }
+    .contribution-grid .level-4,
+    .legend .level-4 {
+        background: var(--heat-4);
+    }
+
     .graph-footer {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        gap: 1rem;
-        margin-top: .6rem;
+        gap: var(--space-s);
+        margin-top: var(--space-2xs);
         color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
     }
     .legend {
         display: inline-flex;
@@ -496,110 +518,137 @@ const yearGraphs = years.map(buildYearGraph);
     .legend i {
         width: 11px;
     }
+
     .daily-records {
-        margin-top: 1.2rem;
-        padding-top: .7rem;
+        margin-top: var(--space-s);
+        padding-top: var(--space-2xs);
         border-top: 1px solid var(--line);
         color: var(--muted);
     }
     .daily-records summary {
-        padding: .6rem 0;
-        cursor: pointer;
+        padding-block: var(--space-2xs);
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
     }
     .daily-records ul {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: .6rem 2rem;
-        margin: .8rem 0;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: var(--space-2xs) var(--space-l);
+        margin: var(--space-2xs) 0;
         padding: 0;
         list-style: none;
     }
     .daily-records li {
         display: flex;
         justify-content: space-between;
-        gap: 1rem;
+        gap: var(--space-s);
+        padding-block: 0.2rem;
+        border-bottom: 1px solid var(--line);
         font-variant-numeric: tabular-nums;
     }
     .activity-note {
-        margin: 1rem 0 0;
+        margin: var(--space-s) 0 0;
         color: var(--muted);
-        font-size: .8rem;
-        line-height: 1.7;
+        font-size: var(--step--2);
+        line-height: 1.75;
     }
+
+    /* --- Values ----------------------------------------------------------- */
+
     .value-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 2rem;
-        margin-top: 2.5rem;
+        gap: var(--space-l);
     }
+    /* Each rule is numbered like a drawing note, not boxed like a card. */
     .value-grid article {
-        padding-top: 1rem;
-        border-top: 1px solid var(--line);
+        padding-top: var(--space-s);
+        border-top: 2px solid var(--ink);
     }
     .value-number {
-        color: var(--accent);
-        font-family: var(--font-mono, monospace);
-        font-size: .75rem;
+        color: var(--accent-text);
+        font-family: var(--font-mono);
+        font-size: var(--step--2);
+        font-variant-numeric: tabular-nums;
     }
     .value-grid h3 {
-        margin: 1rem 0 .6rem;
-        font-size: 1.25rem;
+        margin: var(--space-2xs) 0 var(--space-3xs);
+        font-family: var(--font-display);
+        font-size: var(--step-1);
+        font-weight: 400;
     }
     .value-grid p {
         margin: 0;
         color: var(--muted);
-        font-size: .9rem;
+        font-size: var(--step--1);
     }
+
+    /* --- Closing ---------------------------------------------------------- */
+
     .closing-note {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         flex-wrap: wrap;
-        gap: 1rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--line);
+        gap: var(--space-s);
+        padding-top: var(--space-l);
     }
     .closing-note p {
         margin: 0;
-        font-family: 'SimSun', 'Songti SC', serif;
-        font-size: 1.7rem;
+        font-family: var(--font-display);
+        font-size: var(--step-2);
     }
-    @media (max-width: 800px) {
-        .about-intro {
-            grid-template-columns: minmax(0, 1fr);
+
+    /* --- Breakpoints ------------------------------------------------------ */
+
+    @media (max-width: 1080px) {
+        .intro-copy,
+        .profile-note {
+            grid-column: 1 / -1;
         }
         .profile-note {
-            max-width: 100%;
+            margin-top: var(--space-l);
         }
-        .about-story {
-            grid-template-columns: minmax(0, 1fr);
-            gap: 1.5rem;
+        .section-label {
+            grid-column: 1 / span 2;
+        }
+        .story-copy {
+            grid-column: 4 / -1;
         }
     }
-    @media (max-width: 560px) {
+
+    @media (max-width: 720px) {
         .about-intro {
-            padding-bottom: 3rem;
+            padding-bottom: var(--space-xl);
         }
-        .about-story, .activity-section, .values {
-            padding: 3rem 0;
+        .about-story {
+            grid-template-columns: 1fr;
+            gap: var(--space-s);
+            padding-block: var(--space-xl);
         }
-        .section-heading {
-            align-items: start;
-            flex-direction: column;
-            gap: 1rem;
+        .section-label,
+        .story-copy {
+            grid-column: 1 / -1;
+        }
+        .activity-section,
+        .values {
+            padding-block: var(--space-xl);
         }
         .contribution-card {
-            padding: 1rem;
+            padding: var(--space-s);
+        }
+        .value-grid {
+            grid-template-columns: 1fr;
+            gap: var(--space-m);
         }
         .graph-hint {
             max-width: 8rem;
         }
-        .value-grid {
-            grid-template-columns: minmax(0, 1fr);
-        }
     }
+
     @media (prefers-reduced-motion: reduce) {
-        .year-list button {
+        .year-list button,
+        .contribution-card {
             transition: none;
         }
     }
