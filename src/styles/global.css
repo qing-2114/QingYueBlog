@@ -15,16 +15,8 @@
 
 /* 1. Fonts ---------------------------------------------------------------- */
 
-@font-face {
-	font-family: 'Pinyon Script';
-	src: url('../assets/fonts/pinyon-script.ttf') format('truetype');
-	font-display: swap;
-}
-@font-face {
-	font-family: 'ShoujinTi';
-	src: url('../assets/fonts/shoujinti.ttf') format('truetype');
-	font-display: swap;
-}
+/* Atkinson is self-hosted through the `fonts` option in astro.config.mjs and
+   exposed as --font-atkinson; nothing else needs an @font-face here. */
 
 /* 2. Scale ---------------------------------------------------------------- */
 

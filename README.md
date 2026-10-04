@@ -1,63 +1,52 @@
-# Astro Starter Kit: Blog
+# 清月 · 个人博客
+
+记录 AI Agent、机器人与嵌入式实践的个人博客，基于 [Astro](https://docs.astro.build) 构建，部署在 GitHub Pages：
+
+<https://qing-2114.github.io/QingYueBlog/>
+
+## 本地开发
+
+需要 Node.js ≥ 22.12。
 
 ```sh
-npm create astro@latest -- --template blog
+npm ci
+npm run dev       # 本地开发服务器
+npm run check     # 类型与 frontmatter 检查
+npm run build     # 构建到 ./dist
+npm run preview   # 预览构建结果
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+站点使用 `/QingYueBlog/` 作为 base path，本地访问地址为 `http://localhost:4321/QingYueBlog/`。
 
-Features:
+### Windows 与 WSL 共用 node_modules
 
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and Open Graph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
+npm 只会安装执行 `npm install` 的那个平台的原生依赖（rolldown、esbuild、sharp、lightningcss 等）。在 Windows 装好依赖后切到 WSL 构建，会报 `Cannot find module './rolldown-binding.wasi.cjs'` 之类的错误。
 
-## 🚀 Project Structure
+`npm run dev` 和 `npm run build` 会先执行 `scripts/ensure-native-deps.mjs`，自动补装当前平台缺少的绑定，不会改动其余依赖，所以两个平台可以共用同一份 `node_modules`。如果直接运行 `astro dev --background` 等命令，先手动执行一次：
 
-Inside of your Astro project, you'll see the following folders and files:
+```sh
+npm run native
+```
+
+## 目录结构
 
 ```text
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
+src/
+├── content/blog/       文章（Markdown / MDX）
+├── content/projects/   项目档案
+├── data/               项目页实验流程数据
+├── components/         组件（含实验流程动画）
+├── layouts/            文章布局
+├── pages/              路由，含 rss.xml
+├── styles/global.css   设计 token 与全局样式
+└── assets/             图片与字体
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 订阅
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+- RSS：`/QingYueBlog/rss.xml`
+- Sitemap：`/QingYueBlog/sitemap-index.xml`
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
+## 部署
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
-
-## Credit
-
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+推送到 `master` 后，`.github/workflows/deploy.yml` 会依次运行类型检查和构建，然后发布到 GitHub Pages。

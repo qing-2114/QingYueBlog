@@ -30,7 +30,12 @@ const pad = (value: number) => String(value).padStart(2, '0');
 <!doctype html>
 <html lang="zh-CN">
 	<head>
-		<BaseHead title={title} description={description} image={heroImage} />
+		<BaseHead
+			title={title}
+			description={description}
+			image={heroImage}
+			article={{ publishedTime: pubDate, modifiedTime: updatedDate, section: category, tags }}
+		/>
 	</head>
 	<body>
 		<progress class="reading-progress" data-reading-progress max="100" value="0" aria-label="文章阅读进度"></progress>
