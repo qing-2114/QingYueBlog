@@ -13,9 +13,9 @@ OPENAI · AGENTS.MD
 
 官方指南把相关建议分成五部分。下面说明它们为什么适合写进 **AGENTS.md**，并给出对应的中文规则。
 
-## 01
+## 主动推进与持续完成
 
-**1. Initiative and follow-through 主动推进与持续完成**
+*Initiative and follow-through*
 
 GPT-6 Astra 通常比 GPT-5.6 Sol 和更早的模型更能在长任务中保持连贯。它也更容易在早期模型会自行假设的地方提出澄清问题。
 
@@ -49,9 +49,9 @@ GPT-6 Astra 通常比 GPT-5.6 Sol 和更早的模型更能在长任务中保持�
 
 ![主动推进与持续完成](../../assets/agents-md-work-rules/01-initiative.png)
 
-## 02
+## 指令遵循
 
-**2. Instruction following 指令遵循**
+*Instruction following*
 
 GPT-6 Astra 比之前的模型更擅长遵循较长的指令，但也可能对上下文中的信息更加敏感。例如，Skill 文件里不清楚或相互冲突的指导，可能导致模型过早暂停并阻塞工作。应当明确用户指令和 Skill 的优先级。
 
@@ -69,9 +69,9 @@ GPT-6 Astra 比之前的模型更擅长遵循较长的指令，但也可能对�
 
 ![指令遵循](../../assets/agents-md-work-rules/02-instruction.png)
 
-## 03
+## 表达风格与写作方式
 
-**3. Personality and writing style 表达风格与写作方式**
+*Personality and writing style*
 
 GPT-6 Astra 倾向于使用列表、表格和 Markdown，让回答更容易浏览。如果应用需要较少格式化的散文，应当明确说明这种偏好。
 
@@ -97,9 +97,9 @@ GPT-6 Astra 倾向于使用列表、表格和 Markdown，让回答更容易浏�
 
 ![表达风格与写作方式](../../assets/agents-md-work-rules/03-style.png)
 
-## 04
+## 子代理委派
 
-**4. Subagent delegation 子代理委派**
+*Subagent delegation*
 
 GPT-6 Astra 经过训练，能够把工作拆分并委派给并行工作的子代理。如果你在自己的运行框架中实现多代理系统，可以使用下面的提示词调整 GPT-6 Astra 的委派程度：
 
@@ -117,9 +117,9 @@ GPT-6 Astra 经过训练，能够把工作拆分并委派给并行工作的子�
 
 ![子代理委派](../../assets/agents-md-work-rules/04-subagent.png)
 
-## 05
+## 测试与验证
 
-**5. Testing and verification 测试与验证**
+*Testing and verification*
 
 对于编码任务，GPT-6 Astra 往往会在认为任务完成之前进行较为全面的测试。对于较小的任务，这可能导致测试范围超过任务实际需要的程度。
 
@@ -133,6 +133,6 @@ GPT-6 Astra 经过训练，能够把工作拆分并委派给并行工作的子�
 
 ![测试与验证](../../assets/agents-md-work-rules/05-testing.png)
 
-### 参考资料
+## 参考资料
 
 - [OpenAI 官方模型指南](https://developers.openai.com/api/docs/guides/latest-model)
