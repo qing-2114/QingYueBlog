@@ -5,9 +5,9 @@ interface Props { showStudioNote?: boolean; }
 const { showStudioNote = false } = Astro.props;
 const year = new Date().getFullYear();
 const links = [
-  { title: 'Writing', icon: 'writing', href: `${basePath}blog/` },
-  { title: 'Labs', icon: 'flask', href: `${basePath}projects/` },
-  { title: 'About', icon: 'user', href: `${basePath}about/` },
+  { title: 'Writing', icon: 'writing', href: `${basePath}blog/`, external: false },
+  { title: 'Labs', icon: 'flask', href: `${basePath}projects/`, external: false },
+  { title: 'About', icon: 'user', href: `${basePath}about/`, external: false },
   { title: 'GitHub', icon: 'github', href: 'https://github.com/qing-2114', external: true },
 ] as const;
 ---
@@ -25,7 +25,7 @@ const links = [
         {links.map(link => (
           <a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noreferrer' : undefined}>
             <Icon name={link.icon} size={20} class="link-icon" />
-            <span class="link-title">{link.title}{'external' in link && <span class="sr-only">，打开新标签页</span>}</span>
+            <span class="link-title">{link.title}{link.external && <span class="sr-only">，打开新标签页</span>}</span>
             <span class="link-arrow" aria-hidden="true">↗</span>
           </a>
         ))}
