@@ -4,12 +4,16 @@ import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import ArticlePreview from '../../components/ArticlePreview.astro';
+import Icon from '../../components/Icon.astro';
+import { Image } from 'astro:assets';
+import archiveArt from '../../assets/site/archive-stack.png';
 import { SITE_TITLE } from '../../consts';
-import { byDate, readingMinutes } from '../../utils/content';
+import { byDate, readingMinutes, topics } from '../../utils/content';
 
 const posts = (await getCollection('blog')).sort(byDate);
 const categories = [...new Set(posts.map((post) => post.data.category))];
 const pad = (value: number) => String(value).padStart(2, '0');
+const iconFor = (category: string) => topics.find((topic) => topic.category === category)?.icon ?? 'writing';
 const countIn = (category: string) => posts.filter((post) => post.data.category === category).length;
 ---
 <!doctype html>
@@ -22,8 +26,8 @@ const countIn = (category: string) => posts.filter((post) => post.data.category 
         <p class="eyebrow">WRITING&nbsp;/&nbsp;归档</p>
         <div class="grid archive-masthead">
           <h1>每一篇，<br /><span>都是一次探索。</span></h1>
-          <div class="archive-caption">
-            <p>从一个困惑开始，到一段可以回看的记录。这里收集技术实践、实验复盘和仍在生长的想法。</p>
+          <div class="archive-caption" aria-hidden="true">
+            <Image class="line-art" src={archiveArt} alt="" width={360} widths={[240, 360]} sizes="(max-width: 720px) 50vw, 20vw" loading="eager" />
             <span class="archive-total">{pad(posts.length)} FIELD NOTES</span>
           </div>
         </div>
@@ -33,10 +37,9 @@ const countIn = (category: string) => posts.filter((post) => post.data.category 
         <aside class="filters" aria-labelledby="filter-heading">
           <p class="eyebrow label-plain" id="filter-heading">阅读方向</p>
           <div class="category-list" role="group" aria-label="按分类筛选">
-            <button type="button" data-category="all" aria-pressed="true"><span>全部文章</span><small>{pad(posts.length)}</small></button>
-            {categories.map((category) => <button type="button" data-category={category} aria-pressed="false"><span>{category}</span><small>{pad(countIn(category))}</small></button>)}
+            <button type="button" data-category="all" aria-pressed="true"><span><Icon name="writing" size={16} />全部</span><small>{pad(posts.length)}</small></button>
+            {categories.map((category) => <button type="button" data-category={category} aria-pressed="false"><span><Icon name={iconFor(category)} size={16} />{category}</span><small>{pad(countIn(category))}</small></button>)}
           </div>
-          <p class="filter-note">探索不同的主题，<br />找到与你有关的问题。</p>
         </aside>
 
         <section class="archive-content" aria-label="文章列表">
@@ -148,10 +151,14 @@ const countIn = (category: string) => posts.filter((post) => post.data.category 
   .archive-caption {
     grid-column: 9 / -1;
   }
-  .archive-caption p {
-    color: var(--muted);
-    font-size: var(--step--1);
-    line-height: 1.85;
+  .archive-caption {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-2xs);
+  }
+  .archive-caption :global(img) {
+    max-width: 14rem;
   }
   .archive-total {
     color: var(--accent-text);
@@ -211,6 +218,11 @@ const countIn = (category: string) => posts.filter((post) => post.data.category 
   .category-list button {
     position: relative;
   }
+  .category-list button > span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
   .category-list button[aria-pressed='true'] {
     color: var(--ink);
     font-weight: 500;
@@ -228,14 +240,6 @@ const countIn = (category: string) => posts.filter((post) => post.data.category 
     font-family: var(--font-mono);
     font-size: var(--step--2);
     font-variant-numeric: tabular-nums;
-  }
-  .filter-note {
-    margin-top: var(--space-l);
-    padding-top: var(--space-s);
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: var(--step--2);
-    line-height: 1.7;
   }
 
   /* --- Toolbar ---------------------------------------------------------- */
@@ -340,7 +344,7 @@ const countIn = (category: string) => posts.filter((post) => post.data.category 
       grid-column: 1 / -1;
     }
     .archive-caption {
-      margin-top: var(--space-m);
+      display: none;
     }
     .archive-layout {
       grid-template-columns: 9rem minmax(0, 1fr);

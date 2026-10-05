@@ -3,11 +3,11 @@ import curiosity from '../assets/learning-in-the-ai-era/04-curiosity.png';
 
 export const basePath = import.meta.env.BASE_URL.replace(/\/?$/, '/');
 export const topics = [
-  { category: 'AI Agent', label: 'AI Agent', subtitle: '模型、工具与智能体', index: '01' },
-  { category: '机器人', label: '机器人', subtitle: '从运动学到真实运动', index: '02' },
-  { category: '嵌入式', label: '嵌入式', subtitle: '控制、传感与硬件', index: '03' },
-  { category: 'AI 与学习', label: '学习与思考', subtitle: '理解技术，也理解自己', index: '04' },
-];
+  { category: 'AI Agent', label: 'AI Agent', subtitle: '模型、工具与智能体', index: '01', icon: 'agent' },
+  { category: '机器人', label: '机器人', subtitle: '从运动学到真实运动', index: '02', icon: 'robot' },
+  { category: '嵌入式', label: '嵌入式', subtitle: '控制、传感与硬件', index: '03', icon: 'chip' },
+  { category: 'AI 与学习', label: '学习与思考', subtitle: '理解技术，也理解自己', index: '04', icon: 'book' },
+] as const;
 
 export function readingMinutes(body = '') {
   const clean = body.replace(/^import .*$/gm, '').replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '');

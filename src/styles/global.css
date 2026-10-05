@@ -113,6 +113,10 @@
 	--heat-2: #ffab7d;
 	--heat-3: #ff7a3c;
 	--heat-4: #ff4d00;
+
+	/* Line illustrations are black ink on white; blend lets the paper show through. */
+	--art-filter: none;
+	--art-blend: multiply;
 }
 
 /* 4. Dark theme -----------------------------------------------------------
@@ -159,6 +163,9 @@
 	--diagram-grid: rgb(250 250 250 / 6%);
 	--diagram-lane: rgb(250 250 250 / 42%);
 	--diagram-caption: #0a0a0a;
+
+	--art-filter: invert(1) hue-rotate(180deg);
+	--art-blend: screen;
 
 	/* Heat scale inverts direction: on black, more activity means brighter. */
 	--heat-0: #1c1c1f;
@@ -208,7 +215,21 @@
 		--diagram-grid: rgb(250 250 250 / 6%);
 		--diagram-lane: rgb(250 250 250 / 42%);
 		--diagram-caption: #0a0a0a;
+
+		--art-filter: invert(1) hue-rotate(180deg);
+		--art-blend: screen;
 	}
+}
+
+/* Generated line illustrations: decorative, theme-aware, never cropped. */
+.line-art {
+	display: block;
+	width: 100%;
+	height: auto;
+	filter: var(--art-filter);
+	mix-blend-mode: var(--art-blend);
+	user-select: none;
+	pointer-events: none;
 }
 
 /* 5. Layout primitives ---------------------------------------------------- */
@@ -540,6 +561,16 @@ blockquote p:last-child {
 	font-family: var(--font-mono);
 	font-size: var(--step--2);
 	letter-spacing: 0.04em;
+}
+
+.article-meta > span {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-3xs);
+}
+
+.icon {
+	flex-shrink: 0;
 }
 
 .article-meta > span:first-child {

@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import FormattedDate from './FormattedDate.astro';
+import Icon from './Icon.astro';
 import { articleCover, basePath, readingMinutes } from '../utils/content';
 
 interface Props { post: CollectionEntry<'blog'>; compact?: boolean; index?: string; }
@@ -21,10 +22,10 @@ const href = `${basePath}blog/${post.id}/`;
       <FormattedDate date={post.data.pubDate} />
     </div>
     <Heading><a href={href}>{post.data.title}</a></Heading>
-    <p>{post.data.description}</p>
+    {compact && <p>{post.data.description}</p>}
     <div class="preview-bottom">
-      <span class="preview-reading">约 {readingMinutes(post.body)} 分钟</span>
-      <a class="preview-link" href={href} aria-label={`阅读：${post.data.title}`}>阅读全文 <span aria-hidden="true">↗</span></a>
+      <span class="preview-reading"><Icon name="clock" size={14} /> {readingMinutes(post.body)} min<span class="sr-only">阅读</span></span>
+      <a class="preview-link" href={href} aria-label={`阅读：${post.data.title}`}><span aria-hidden="true">↗</span></a>
     </div>
   </div>
 </article>
@@ -107,9 +108,17 @@ const href = `${basePath}blog/${post.id}/`;
     font-size: var(--step--2);
     letter-spacing: 0.04em;
   }
+  .preview-reading {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+  }
   .preview-link {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    font-size: var(--step-0);
     gap: var(--space-3xs);
     min-height: 44px;
     color: var(--accent-text);
@@ -156,8 +165,8 @@ const href = `${basePath}blog/${post.id}/`;
     padding-top: 0;
   }
   .compact p {
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
   }
 
   @media (max-width: 720px) {

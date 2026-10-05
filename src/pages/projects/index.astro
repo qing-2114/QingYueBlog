@@ -7,6 +7,8 @@ import Header from '../../components/Header.astro';
 import ExperimentFlow from '../../components/ExperimentFlow.astro';
 import { langGraphFlow } from '../../data/experiment-flows';
 import workbench from '../../assets/grok-build-web/workbench.png';
+import labsArt from '../../assets/site/labs-sketch-to-robot.png';
+import Icon from '../../components/Icon.astro';
 import { SITE_TITLE } from '../../consts';
 
 const projects = (await getCollection('projects')).sort(
@@ -33,7 +35,7 @@ const kicker = (id: string) =>
                 <div class="grid intro-grid">
                     <h1>把想法，<br />做成可以运行的东西。</h1>
                     <div class="intro-caption">
-                        <p>从智能体的执行链路，到本地工作台的产品界面。这里保留每个项目的目标、过程与阶段记录。</p>
+                        <Image class="line-art" src={labsArt} alt="" width={720} widths={[360, 720]} sizes="(max-width: 1080px) 90vw, 36vw" loading="eager" />
                         <span class="project-total">{pad(projects.length)} 个项目档案</span>
                     </div>
                 </div>
@@ -45,7 +47,7 @@ const kicker = (id: string) =>
                         <div class="entry-head">
                             <span class="entry-number">{pad(index + 1)}</span>
                             <span class="entry-kicker">{kicker(project.id)}</span>
-                            <span class="entry-updated">更新于 {formatDate(project.data.updatedDate ?? project.data.startDate)}</span>
+                            <span class="entry-updated"><Icon name="calendar" size={14} /><span class="sr-only">更新于</span>{formatDate(project.data.updatedDate ?? project.data.startDate)}</span>
                         </div>
 
                         <div class="entry-body">
@@ -110,10 +112,9 @@ const kicker = (id: string) =>
         grid-column: 9 / -1;
         align-self: end;
     }
-    .intro-caption p {
-        color: var(--muted);
-        font-size: var(--step--1);
-        line-height: 1.85;
+    .intro-caption :global(img) {
+        max-width: 26rem;
+        margin-left: auto;
     }
     .project-total {
         display: block;
@@ -156,6 +157,9 @@ const kicker = (id: string) =>
         color: var(--ink);
     }
     .entry-updated {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3xs);
         margin-left: auto;
     }
 
@@ -187,6 +191,11 @@ const kicker = (id: string) =>
         color: var(--muted);
         font-size: var(--step--1);
         line-height: 1.85;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
     }
     .entry-meta {
         display: flex;
@@ -293,12 +302,9 @@ const kicker = (id: string) =>
         .intro-caption {
             margin-top: var(--space-m);
         }
-        .project-total {
-            display: inline-block;
-            margin-top: 0;
-            margin-left: var(--space-s);
-            padding-top: 0;
-            border-top: 0;
+        .intro-caption :global(img) {
+            max-width: 22rem;
+            margin-left: 0;
         }
     }
 

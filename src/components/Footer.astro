@@ -1,14 +1,15 @@
 ---
 import { basePath } from '../utils/content';
+import Icon from './Icon.astro';
 interface Props { showStudioNote?: boolean; }
 const { showStudioNote = false } = Astro.props;
 const year = new Date().getFullYear();
 const links = [
-  { title: 'Writing', detail: '文章与思考', href: `${basePath}blog/` },
-  { title: 'Labs', detail: '正在进行的实验', href: `${basePath}projects/` },
-  { title: 'About', detail: '认识清月', href: `${basePath}about/` },
-  { title: 'GitHub', detail: '代码与实践', href: 'https://github.com/qing-2114', external: true },
-];
+  { title: 'Writing', icon: 'writing', href: `${basePath}blog/` },
+  { title: 'Labs', icon: 'flask', href: `${basePath}projects/` },
+  { title: 'About', icon: 'user', href: `${basePath}about/` },
+  { title: 'GitHub', icon: 'github', href: 'https://github.com/qing-2114', external: true },
+] as const;
 ---
 
 <footer class="site-footer">
@@ -18,14 +19,14 @@ const links = [
         <div class="footer-copy">
           <p class="eyebrow">KEEP EXPLORING</p>
           <h2>保持好奇，<br />让探索继续。</h2>
-          <p class="studio-note">这里是一间持续开放的数字工作室。<br />有想通的事，也有还在调试的想法。</p>
         </div>
       )}
       <nav class="footer-links" aria-label="页脚导航">
         {links.map(link => (
           <a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noreferrer' : undefined}>
-            <span class="link-title">{link.title}</span>
-            <span class="link-detail">{link.detail}{link.external && <span class="sr-only">，打开新标签页</span>}<span class="link-arrow" aria-hidden="true">↗</span></span>
+            <Icon name={link.icon} size={20} class="link-icon" />
+            <span class="link-title">{link.title}{'external' in link && <span class="sr-only">，打开新标签页</span>}</span>
+            <span class="link-arrow" aria-hidden="true">↗</span>
           </a>
         ))}
       </nav>
@@ -68,13 +69,6 @@ const links = [
   .footer-copy .eyebrow {
     margin-bottom: var(--space-s);
   }
-  .studio-note {
-    margin: var(--space-s) 0 0;
-    max-width: 32rem;
-    color: var(--muted);
-    font-size: var(--step--1);
-    line-height: 1.8;
-  }
 
   /* Four equal columns that read as a table of contents, not buttons. */
   .footer-links {
@@ -85,29 +79,29 @@ const links = [
   }
   .footer-links a {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-3xs);
-    justify-content: center;
-    min-height: 60px;
+    align-items: center;
+    gap: var(--space-xs);
+    min-height: 56px;
     padding: var(--space-2xs) 0;
     color: var(--ink);
     text-decoration: none;
     border-top: 1px solid var(--line);
   }
+  .footer-links :global(.link-icon) {
+    color: var(--muted);
+    transition: color var(--motion-fast);
+  }
   .link-title {
+    flex: 1;
     font-family: var(--font-mono);
     font-size: var(--step--1);
     letter-spacing: 0.06em;
   }
-  .link-detail {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2xs);
-    color: var(--muted);
-    font-size: var(--step--2);
+  .footer-links a:is(:hover, :focus-visible) :global(.link-icon) {
+    color: var(--accent-text);
   }
   .link-arrow {
+    color: var(--muted);
     transition: transform var(--motion-base), color var(--motion-fast);
   }
   .footer-links a:is(:hover, :focus-visible) {
