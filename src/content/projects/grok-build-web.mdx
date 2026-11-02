@@ -4,7 +4,7 @@ description: '给本机 Grok Build 用户使用的桌面级 Web 可视化操作�
 status: active
 statusLabel: 进行中
 startDate: '2026-09-17'
-updatedDate: '2026-10-24'
+updatedDate: '2026-11-03'
 tags: ['Grok Build', 'AI Agent', 'React', 'TypeScript', 'Vite', 'ACP', 'Electron']
 repo: 'https://github.com/qing-2114/grok-build-web'
 ---
@@ -13,19 +13,29 @@ repo: 'https://github.com/qing-2114/grok-build-web'
 
 Grok Build 已经能在本机通过 CLI / TUI 工作，但长时间使用命令行时，项目切换、会话回看、文件预览和模型设置仍然分散在不同入口。这个项目把这些动作收进一个只绑定本机回环地址的工作台，界面负责操作，Grok agent 仍然在本机运行。
 
-## 当前形态（v0.4.6）
+## 当前形态（v0.5.0）
 
-![Grok Build Web 工作台](../../assets/grok-build-web/workbench-2.png)
+![Grok Build Web 工作台](../../assets/grok-build-web/v0-5-0-workbench-3.png)
 
 左侧管理项目与历史会话，中间用文档流呈现对话，底部是输入坞。工作台通过 ACP JSON-RPC 拉起 `grok agent --no-leader stdio`，把流式回复、工具调用和权限请求接回页面。未连接时界面会明确显示本机未连接，不把静态页面伪装成已经接通。
 
 现在它有两种打开方式：Windows 安装包装好后是自带的 Electron 窗口，后台服务无终端窗口运行，关窗即停；开发仓仍可以 `npm run dev` 在浏览器里用。
 
-![浅色主题](../../assets/grok-build-web/light-theme.png)
+![浅色主题](../../assets/grok-build-web/v0-5-0-workbench-3-light.png)
 
-v0.4.6 加了深浅色切换，顶栏一个按钮来回切，偏好存在本机。
+当前公开版本为 **v0.5.0**，发布于 2026 年 10 月 25 日。深浅色主题使用同一套语义颜色，主题偏好存在本机；两种主题下的文字选择都有清晰高亮。本文于 2026 年 11 月 3 日同步进度与截图。
 
 ## 最近进展
+
+### v0.5.0：统一界面，也让连接状态可信
+
+- **按 Apple Human Interface Guidelines 重构视觉**：近黑底与暖白文字保留，背景、标签、填充和分隔线统一到语义 token。玻璃材质集中在输入坞、菜单和提示等浮层，文档流与卡片使用实色；同时适配系统的减少透明度、增强对比度和减少动态效果。
+- **先选供应商，再选模型**：模型菜单可以切换内置 Grok Build 和自定义供应商，对应的模型列表随之切换；「管理模型」直接进入模型部署。
+- **思考强度改成滑块**：拖动时吸附到模型支持的档位，也支持方向键调整，不必在多层菜单里反复寻找。
+- **连接状态与实际握手对齐**：只有 agent 完成 `initialize`、返回版本号与模型列表，顶栏才显示已连接。修复启动时显示已连接却没有版本号、需要到模型部署重新保存才能连上的问题。
+- **未连接自动重试，掉线自动重连**：重试间隔从 1 秒逐步增加，最长 15 秒；连上后每 10 秒检查一次状态。连接失败仍明确提示，不用假回复掩盖故障。
+
+![v0.5.0 模型菜单：供应商切换、模型列表与思考强度滑块](../../assets/grok-build-web/v0-5-0-model-menu.png)
 
 ### v0.4.x：装得上、能自己更新
 
@@ -34,8 +44,6 @@ v0.4.6 加了深浅色切换，顶栏一个按钮来回切，偏好存在本机�
 - **Grok Build CLI 一键安装 / 更新**：探测不到 `grok` 时跑官方安装脚本；已安装就用 `grok update --check --json` 检查新版本。
 - **字体自托管**：去掉 Google Fonts，中文用 Noto Sans SC 可变字重，正文、标签、标题、强调四档固定为 400 / 500 / 600 / 700。
 - **细节修复**：跨平台文件夹选择（桌面窗口走系统对话框）、Word 版式预览、文件类型图标、任务栏图标缓存、流式会话空闲超时续期、已发送附件回显、编辑后重发、按所选模型发送、浅色主题下的文字选区。
-
-![关于版本](../../assets/grok-build-web/about-version.png)
 
 ### v0.3.0：从「能聊」到「能干活」
 
@@ -46,10 +54,6 @@ v0.4.6 加了深浅色切换，顶栏一个按钮来回切，偏好存在本机�
 - **MCP 服务器与用量统计**：MCP 只通过 `grok mcp` 子命令读写，不自己拼 TOML；用量统计只读本机会话记录，按天、按模型汇总，不猜费用。
 - **输入坞**：`@` 引用项目文件、计划清单、每轮用量、完成提醒系统通知。
 
-![Ctrl+K 命令面板](../../assets/grok-build-web/command-palette.png)
-
-![用量统计](../../assets/grok-build-web/usage-stats.png)
-
 ### v0.2.x：先把边界守住
 
 - 服务只监听 `127.0.0.1`，`/api/*` 做同源和主机校验。
@@ -58,20 +62,22 @@ v0.4.6 加了深浅色切换，顶栏一个按钮来回切，偏好存在本机�
 
 ## 右侧栏与模型部署
 
-![右侧栏快捷方式](../../assets/grok-build-web/right-rail-2.png)
+![右侧栏快捷方式](../../assets/grok-build-web/v0-5-0-right-rail-3.png)
 
-右侧栏可以打开审查、集成终端和文件预览，都是可关闭、可新增的标签。文件支持代码高亮、Markdown、PDF、图片和 DOCX 正文预览；对话里的本地路径可以直接点开，网页链接用 Ctrl+单击交给系统浏览器。
+右侧栏可以打开审查、集成终端和文件预览，都是可关闭、可新增的标签。文件支持代码高亮、Markdown、PDF、图片和 DOCX 版式预览；对话里的本地路径可以直接点开，网页链接用 Ctrl+单击交给系统浏览器。
 
-![模型部署设置](../../assets/grok-build-web/model-deploy.png)
+![浅色主题的右侧栏](../../assets/grok-build-web/v0-5-0-right-rail-3-light.png)
 
-设置页可以登记自定义供应商、读取模型列表、配置思考强度和上下文大小，并单独测试模型推理。配置写入本机 `~/.grok/config.toml`，API Key 不进入仓库。工作台不修改 Grok Build 安装目录。
+![模型部署设置](../../assets/grok-build-web/v0-5-0-model-deploy-2.png)
 
-![模型协议选择](../../assets/grok-build-web/model-deploy-protocol.png)
+设置页可以登记自定义供应商、读取模型列表、配置思考强度和上下文大小，并单独测试模型推理。「测试接口」只验证 API Key 与请求地址能否连通；每个模型的「测试」才会发起推理探测。协议支持 Grok Build 原生直连的 Chat Completions、Responses 和 Messages，无需本地路由。配置写入本机 `~/.grok/config.toml`，API Key 不进入仓库。工作台不修改 Grok Build 安装目录。
+
+![模型协议选择](../../assets/grok-build-web/v0-5-0-model-deploy-protocol-2.png)
 
 ## 代码边界
 
 纯状态在 `src/workspace-state.ts`，用 `node --test` 直接测 reducer；`src/workspace.tsx` 负责副作用，组件按字段订阅，流式输出时不整页重渲染。服务端桥接位于 `server/`。会话正文继续由本机 Grok 管理，浏览器只保存工作台偏好和项目资料。
 
-本文截图用工作台的 `?demo=1` 模式拍摄，不读取本机真实会话。
+本文截图同步自项目仓库的 v0.5.0 界面截图（1440 × 900），使用工作台的 `?demo=1` 模式，不读取本机真实会话。
 
 项目源码与安装说明：[qing-2114/grok-build-web](https://github.com/qing-2114/grok-build-web)
