@@ -1,0 +1,202 @@
+---
+import { Image } from 'astro:assets';
+import AgentArchitecture from './AgentArchitecture.astro';
+import ExperimentFlow from './ExperimentFlow.astro';
+import ProjectLab from './ProjectLab.astro';
+import ReActLab from './ReActLab.astro';
+import { learningStages, researchFlow, tripFlow } from '../data/experiment-flows';
+import tripOverview from '../assets/hello-agents/trip-result.jpg';
+import tripItinerary from '../assets/hello-agents/trip-itinerary.jpg';
+import researchTask from '../assets/hello-agents/research-task.jpg';
+import researchReport from '../assets/hello-agents/research-report.jpg';
+const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
+const repo = 'https://github.com/qing-2114/my-hello-agent';
+const apps = [
+  {
+    id: 'trip-showcase', kind: 'trip' as const, chapter: '13', title: '行旅 · 智能旅行助手',
+    lead: '把旅行偏好变成一份可以查看、修改和带走的行程。',
+    description: '景点、天气、酒店与规划四个 Agent 顺序协作，结合高德 MCP、图片和多源天气数据，生成结构化行程。前端把结果组织为预算、地图、每日安排和天气分区。',
+    features: ['行程可调整：排序、删除景点，保存后同步更新预算。', '信息可定位：地图编号与景点顺序对应，天气显示来源与日期。', '结果可带走：导出 PNG 或 PDF，地图不可用时展示坐标清单。'],
+    result: '本次截图：北京 2026-11-04 一日游，真实模型与工具生成 3 个景点，预算估算 ¥487；结果页显示高德地图及天气。',
+    limit: '费用为估算，图片为搜索参考；天气可用日期依来源而定。',
+    path: '13-experiment/trip-assistant', flow: tripFlow,
+    images: [
+      {src: tripItinerary, alt: '北京一日游真实生成结果，显示天安门、故宫与景山的三张景点卡片', caption: '01 / 每日行程 · 景点、配图与游览安排'},
+      {src: tripOverview, alt: '旅行助手生成的北京一日行程首页，支持编辑行程、导出图片与 PDF', caption: '02 / 生成结果 · 行程分区、编辑与导出入口'},
+    ],
+  },
+  {
+    id: 'research-showcase', kind: 'research' as const, chapter: '14', title: '研序 · 深度研究助手',
+    lead: '把一个问题拆成研究任务，让资料、过程和报告有迹可循。',
+    description: '规划、总结与报告三个角色分工协作：先拆解任务，再逐项搜索与总结，最后整合报告。共享 ToolRegistry 管理搜索与笔记，FastAPI 通过 SSE 将阶段事件发送到 Vue 工作台。',
+    features: ['过程可见：任务路径、阶段进度与逐任务总结同步展示。', '来源可追：摘要与报告保留来源编号和 URL，搜索结果去重并缓存。', '产物可保存：NoteTool 落盘计划、总结和报告，前端下载 Markdown。'],
+    result: '本次截图：真实研究“RAG 与长上下文”，完成 5/5 项任务，展示 20 个独立来源并保存 7 条笔记，生成最终报告。',
+    limit: '阶段百分比表示工作流程；报告内容仍需核对来源。笔记可事后读取，自动断点续跑尚未实现。',
+    path: '14-experiment/research-assistant', flow: researchFlow,
+    images: [
+      {src: researchReport, alt: '深度研究助手完成五项任务，显示百分之百状态、研究报告和 Markdown 下载按钮', caption: '01 / 最终报告 · 任务完成状态与可下载产物'},
+      {src: researchTask, alt: '研究工作台左侧显示任务列表，右侧显示单项研究目标、检索方向与总结', caption: '02 / 研究过程 · 从任务路径进入阶段总结'},
+    ],
+  },
+];
+---
+<div class="agent-content">
+  <nav class="app-entry" aria-label="先看应用成果">
+    {apps.map((app) => <a href={`#${app.id}`}><span>CHAPTER {app.chapter}</span><strong>{app.title}</strong><span class="entry-action">看成果与实现 <span aria-hidden="true">↗</span></span></a>)}
+  </nav>
+
+  {apps.map((app) => <section class="showcase" id={app.id} aria-labelledby={`${app.id}-title`}>
+    <header class="section-heading">
+      <div><p class="eyebrow">CHAPTER {app.chapter} / APPLICATION</p><h2 id={`${app.id}-title`}>{app.title}</h2></div>
+      <span class="status-label">自主实现 · 有真实验证记录</span>
+    </header>
+    <p class="app-lead">{app.lead}</p>
+    <div class="app-explanation"><p>{app.description}</p><ul>{app.features.map((feature) => <li>{feature}</li>)}</ul></div>
+    <div class="screenshot-grid">
+      {app.images.map((shot) => <figure>
+        <a href={shot.src.src} target="_blank" rel="noreferrer" aria-label={`${shot.caption}，打开大图`}>
+          <Image src={shot.src} alt={shot.alt} width={1280} widths={[480, 800, 1280]} sizes="(max-width: 720px) 90vw, 480px" loading="lazy" />
+        </a>
+        <figcaption>{shot.caption}<span>点击查看大图 ↗</span></figcaption>
+      </figure>)}
+    </div>
+    <p class="result-note">{app.result}</p>
+    <AgentArchitecture kind={app.kind} />
+    <details class="flow-disclosure" data-flow-disclosure>
+      <summary>播放执行流程 <span>{app.kind === 'trip' ? '四 Agent 如何生成行程' : '从研究计划到最终报告'}</span></summary>
+      <ExperimentFlow flow={app.flow} headingLevel="h3" />
+    </details>
+    <div class="app-footer"><p>{app.limit}</p><a href={`${repo}/tree/master/${app.path}`} target="_blank" rel="noreferrer">源码与实现说明 ↗</a></div>
+  </section>)}
+
+  <section class="learning-path" id="learning-path" aria-labelledby="learning-path-title">
+    <header class="section-heading"><div><p class="eyebrow">LEARNING PATH / 实验档案</p><h2 id="learning-path-title">这些应用，是怎样一步步搭起来的</h2></div></header>
+    <p class="section-intro">沿学习顺序回看基础实验。每组先说明学习重点，展开后查看可播放的流程与源码定位；第十三、十四章的综合应用见上方。</p>
+    <ol class="path-index" aria-label="学习阶段导航">
+      {learningStages.map((stage) => <li><a href={`#${stage.id}`}><span>{stage.number}</span><strong>{stage.title}</strong><small>第 {stage.chapters} 章</small></a></li>)}
+      <li><a href="#trip-showcase"><span>05</span><strong>综合应用</strong><small>第 13 / 14 章 · 见上方成果</small></a></li>
+    </ol>
+    {learningStages.map((stage) => <details class="stage" id={stage.id} data-flow-disclosure>
+      <summary><h3><span class="stage-number">{stage.number}</span><span>{stage.title}<small>第 {stage.chapters} 章</small></span><span class="disclosure-label"><span class="when-closed">展开实验</span><span class="when-open">收起实验</span><span aria-hidden="true"> +</span></span></h3></summary>
+      <div class="stage-body">
+        <p class="stage-lead">{stage.summary}</p><p class="stage-takeaway">{stage.takeaway}</p>
+        <nav class="flow-index" aria-label={`${stage.title}的实验目录`}>
+          {[...stage.links, ...stage.flows.map(flow => ({id: flow.id, label: flow.title}))].map(link => <a href={`#${link.id}`}>{link.label}</a>)}
+        </nav>
+        {stage.labs && <><ProjectLab /><ReActLab /></>}
+        {stage.flows.map(flow => <>{flow.id === 'chapter-seven-my-llm' && <span id="chapter-seven-title" class="anchor-target"></span>}<ExperimentFlow flow={flow} headingLevel="h3" /></>)}
+      </div>
+    </details>)}
+    <p class="scope-note">章节覆盖不连续：<a href={`${repo}/tree/master/3.2-experiment`}>3.2 的学习记录见仓库</a>；第十一章 Agentic-RL 尚未列入已完成实验。BFCL 当前为五样本流程验证，完整 BFCL / GAIA 仍待推进。</p>
+  </section>
+
+  <section class="evidence" id="agent-evidence" aria-labelledby="agent-evidence-title">
+    <p class="eyebrow">SOURCE / VALIDATION</p><h2 id="agent-evidence-title">继续阅读与复现</h2>
+    <ul>
+      <li><a href={`${repo}/blob/master/13-experiment/trip-assistant/tests/VALIDATION-2026-11-03.md`}>第十三章 · 真实 API、地图、编辑与导出验证 ↗</a></li>
+      <li><a href={`${repo}/tree/master/14-experiment/research-assistant`}>第十四章 · SSE、搜索、工具与笔记验证 ↗</a></li>
+      <li><a href={`${repo}/tree/master/12-experiment`}>第十二章 · BFCL 五样本与官方子集复核 ↗</a></li>
+      <li><a href={`${base}blog/my-hello-agent/`}>阅读学习笔记 · 从基础循环到完整应用 →</a></li>
+    </ul>
+    <p>截图采集于 2026 年 11 月 3 日，来自本地应用的真实生成结果。流程动画用于解释执行顺序，实验状态以对应 README 与验证记录为准。</p>
+  </section>
+</div>
+
+<script>
+  // Native details keeps every diagram available without JavaScript. Open the
+  // containing disclosure before scrolling to old or new deep links.
+  const revealTarget = () => {
+    let id: string;
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
+    const target = document.getElementById(id);
+    if (!target || !id) return;
+    let parent: HTMLElement | null = target;
+    while (parent) {
+      if (parent instanceof HTMLDetailsElement) parent.open = true;
+      parent = parent.parentElement;
+    }
+    requestAnimationFrame(() => target.scrollIntoView({block: 'start'}));
+  };
+  window.addEventListener('hashchange', revealTarget);
+  document.querySelectorAll<HTMLAnchorElement>('.agent-content a[href^="#"]').forEach(link => {
+    link.addEventListener('click', () => { if (link.hash === location.hash) revealTarget(); });
+  });
+  revealTarget();
+</script>
+
+<style>
+  .agent-content { min-width: 0; }
+  .app-entry { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: var(--space-2xl); border-block: 1px solid var(--line-ink); }
+  .app-entry a { display: grid; gap: var(--space-2xs); min-width: 0; padding: var(--space-m); color: var(--ink); text-decoration: none; }
+  .app-entry a + a { border-left: 1px solid var(--line); }
+  .app-entry a:hover { background: var(--accent-soft); }
+  .app-entry span { font: 0.7rem var(--font-mono); color: var(--muted); }
+  .app-entry strong { font: 400 var(--step-1) var(--font-display); }
+  .app-entry .entry-action { color: var(--accent-text); }
+  .showcase, .learning-path, .evidence { margin-top: var(--space-2xl); padding-top: var(--space-l); border-top: 1px solid var(--line-ink); scroll-margin-top: 6rem; }
+  .section-heading { gap: var(--space-s); margin-bottom: var(--space-m); }
+  h2 { font: 400 var(--step-2)/1.4 var(--font-display); letter-spacing: -0.02em; }
+  .status-label { color: var(--accent-text); font-size: var(--step--2); }
+  .app-lead { max-width: 42rem; margin-bottom: var(--space-m); color: var(--ink); font-size: var(--step-1); line-height: 1.75; }
+  .app-explanation { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-l); margin-bottom: var(--space-l); color: var(--ink-2); font-size: var(--step--1); line-height: 1.9; }
+  .app-explanation p, .app-explanation ul { margin: 0; }
+  .app-explanation ul { padding-left: 1.2rem; }
+  .app-explanation li + li { margin-top: var(--space-2xs); }
+  .screenshot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-s); }
+  .screenshot-grid figure { min-width: 0; margin: 0; }
+  .screenshot-grid a { display: block; border: 1px solid var(--line); background: var(--plate); }
+  .screenshot-grid img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; }
+  figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2xs); margin-top: var(--space-2xs); color: var(--ink-2); font-size: var(--step--2); line-height: 1.7; }
+  figcaption span { color: var(--accent-text); }
+  .result-note { margin: var(--space-m) 0; padding-left: var(--space-s); border-left: 2px solid var(--accent); color: var(--ink-2); font-size: var(--step--1); line-height: 1.85; }
+  .flow-disclosure { border-block: 1px solid var(--line); }
+  summary { cursor: pointer; }
+  .flow-disclosure > summary { padding: var(--space-s) 0; font-size: var(--step--1); color: var(--accent-text); }
+  .flow-disclosure > summary span { margin-left: var(--space-xs); color: var(--ink-2); }
+  .flow-disclosure :global(.experiment-flow) { margin: 0 0 var(--space-s); }
+  .app-footer { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-m); margin-top: var(--space-s); font-size: var(--step--2); line-height: 1.8; }
+  .app-footer p { max-width: 40rem; margin: 0; color: var(--muted); }
+  .app-footer a { flex-shrink: 0; display: inline-flex; align-items: center; min-height: 44px; }
+  .section-intro { max-width: 46rem; color: var(--ink-2); line-height: 1.85; }
+  .path-index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: var(--space-l) 0; padding: 0; list-style: none; border-block: 1px solid var(--line); }
+  .path-index li { min-width: 0; }
+  .path-index a { display: grid; gap: var(--space-2xs); height: 100%; padding: var(--space-s); text-decoration: none; }
+  .path-index li + li { border-left: 1px solid var(--line); }
+  .path-index a:hover { background: var(--accent-soft); }
+  .path-index span { color: var(--accent-text); font: var(--step--1) var(--font-mono); }
+  .path-index strong { color: var(--ink); font-size: var(--step--1); line-height: 1.6; font-weight: 500; }
+  .path-index small { color: var(--muted); font-size: var(--step--2); }
+  .stage { border-bottom: 1px solid var(--line); scroll-margin-top: 6rem; }
+  .stage > summary { list-style: none; padding: var(--space-m) 0; }
+  .stage > summary::-webkit-details-marker { display: none; }
+  .stage h3 { display: flex; align-items: center; gap: var(--space-m); margin: 0; font-size: var(--step-0); font-weight: 500; line-height: 1.5; }
+  .stage-number { color: var(--accent-text); font: var(--step--1) var(--font-mono); }
+  .stage h3 small { display: block; margin-top: var(--space-3xs); color: var(--muted); font-size: var(--step--2); font-weight: 400; }
+  .disclosure-label { margin-left: auto; color: var(--accent-text); font-size: var(--step--2); white-space: nowrap; }
+  .when-open, .stage[open] .when-closed { display: none; }
+  .stage[open] .when-open { display: inline; }
+  .stage-body { min-width: 0; padding-bottom: var(--space-m); }
+  .stage-lead, .stage-takeaway { max-width: 48rem; font-size: var(--step--1); line-height: 1.85; }
+  .stage-takeaway { color: var(--ink-2); }
+  .flow-index { display: flex; flex-wrap: wrap; gap: 0 var(--space-m); padding-block: var(--space-2xs); border-block: 1px solid var(--line); }
+  .flow-index a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--step--2); }
+  .anchor-target { display: block; scroll-margin-top: 6rem; }
+  .scope-note, .evidence p { margin-top: var(--space-m); color: var(--muted); font-size: var(--step--1); line-height: 1.85; }
+  .evidence ul { margin: var(--space-m) 0; padding: 0; list-style: none; }
+  .evidence a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--step--1); line-height: 1.7; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  @media (max-width: 720px) {
+    .app-entry, .app-explanation, .screenshot-grid { grid-template-columns: 1fr; }
+    .app-entry a + a { border-left: 0; border-top: 1px solid var(--line); }
+    .app-explanation { gap: var(--space-s); }
+    .screenshot-grid { gap: var(--space-m); }
+    .section-heading, .app-footer { display: block; }
+    .status-label { display: block; margin-top: var(--space-2xs); }
+    .path-index { grid-template-columns: 1fr; }
+    .path-index a { grid-template-columns: 2rem 1fr; gap: var(--space-3xs) var(--space-2xs); }
+    .path-index small { grid-column: 2; }
+    .path-index li + li { border-left: 0; border-top: 1px solid var(--line); }
+    .stage h3 { gap: var(--space-xs); }
+    .flow-disclosure > summary span { display: block; margin: var(--space-2xs) 0 0; }
+  }
+</style>

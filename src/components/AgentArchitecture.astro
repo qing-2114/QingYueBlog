@@ -1,0 +1,61 @@
+---
+interface Props { kind: 'trip' | 'research' }
+const { kind } = Astro.props;
+const trip = kind === 'trip';
+const id = `${kind}-architecture`;
+const nodes = trip ? [
+  { x: 24, y: 35, title: 'Vue 旅行界面', lines: ['偏好表单 · 行程编辑', '地图导航 · PNG / PDF 导出'] },
+  { x: 330, y: 35, title: 'FastAPI 服务', lines: ['请求校验 · 行程接口', '结果校验与天气补全'] },
+  { x: 636, y: 35, title: 'TripPlannerAgent', lines: ['四角色顺序协作', '不合格行程修正一次'] },
+  { x: 24, y: 220, title: '共享 LLM', lines: ['景点 / 天气 / 酒店 / 规划', '统一模型配置'] },
+  { x: 330, y: 220, title: '高德 MCP', lines: ['地点检索 · 地理信息', '三个查询 Agent 共享工具'] },
+  { x: 636, y: 220, title: '外部数据服务', lines: ['Unsplash 图片', '高德 / HKO / Open-Meteo 天气'] },
+] : [
+  { x: 24, y: 35, title: 'Vue 研究工作台', lines: ['任务路径 · 阶段进度', '来源阅读 · Markdown 下载'] },
+  { x: 330, y: 35, title: 'FastAPI + SSE', lines: ['POST /api/research', '阶段事件流向浏览器'] },
+  { x: 636, y: 35, title: 'DeepResearchAgent', lines: ['规划 → 逐任务总结 → 报告', '三个角色共享 LLM'] },
+  { x: 24, y: 220, title: '搜索服务', lines: ['本次实测使用 Tavily', '来源去重 · 长度预算 · 缓存'] },
+  { x: 330, y: 220, title: '共享 ToolRegistry', lines: ['search / note 工具', '统一注册与调用事件'] },
+  { x: 636, y: 220, title: 'NoteTool', lines: ['计划 · 任务资料与总结 · 报告', 'Markdown 与索引本地持久化'] },
+];
+const paths = trip ? [
+  'M 284 80 H 330', 'M 590 80 H 636',
+  'M 766 125 V 167 H 154 V 220', 'M 766 167 H 460 V 220', 'M 766 167 V 220',
+] : [
+  'M 284 80 H 330', 'M 590 80 H 636', 'M 766 125 V 167 H 460 V 220',
+  'M 330 265 H 284', 'M 590 265 H 636',
+];
+---
+<figure class="architecture" aria-labelledby={`${id}-caption`}>
+  <figcaption id={`${id}-caption`}><span>STRUCTURE / 系统结构</span><strong>{trip ? '界面、编排与数据服务如何连接' : '工作台、研究编排与工具如何协作'}</strong></figcaption>
+  <div class="architecture-scroll" tabindex="0" role="region" aria-label={`${trip ? '旅行助手' : '研究助手'}结构图，可横向滚动`}>
+    <svg viewBox="0 0 920 345" role="img" aria-labelledby={`${id}-title ${id}-desc`}>
+      <title id={`${id}-title`}>{trip ? '旅行助手' : '研究助手'}系统结构图</title>
+      <desc id={`${id}-desc`}>{trip ? 'Vue 通过 FastAPI 请求 TripPlannerAgent。编排器使用共享模型、高德 MCP 及图片和多源天气服务。' : 'Vue 通过 FastAPI SSE 接收 DeepResearchAgent 的研究事件。编排器共享 ToolRegistry，连接搜索服务与 NoteTool 持久化。'}</desc>
+      <defs><marker id={`${id}-arrow`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" /></marker></defs>
+      {paths.map((d, i) => <path class="connector" d={d} marker-start={i === 0 ? `url(#${id}-arrow)` : undefined} marker-end={`url(#${id}-arrow)`} />)}
+      <text class="connection-label" x="460" y="190" text-anchor="middle">{trip ? '模型与工具依赖' : '统一工具访问'}</text>
+      {nodes.map((node, i) => <g>
+        <rect x={node.x} y={node.y} width="260" height="90" class:list={['box', {primary: i === 2}]} />
+        <text x={node.x + 16} y={node.y + 27} class="node-title">{node.title}</text>
+        {node.lines.map((line, j) => <text x={node.x + 16} y={node.y + 50 + j * 20} class="node-copy">{line}</text>)}
+      </g>)}
+    </svg>
+  </div>
+</figure>
+<style>
+  .architecture { margin: var(--space-l) 0; border: 1px solid var(--line); background: var(--surface-sunk); }
+  figcaption { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-m); padding: var(--space-s); border-bottom: 1px solid var(--line); }
+  figcaption span { color: var(--accent-text); font: 0.7rem var(--font-mono); }
+  figcaption strong { font-size: var(--step--1); font-weight: 500; }
+  .architecture-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
+  .architecture-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  svg { display: block; width: 100%; min-width: 720px; }
+  .box { fill: var(--surface); stroke: var(--line-strong); }
+  .primary { stroke: var(--accent); }
+  .connector { fill: none; stroke: var(--diagram-main); stroke-width: 1.5; }
+  marker path { fill: var(--diagram-main); }
+  .node-title { fill: var(--ink); font-size: 16px; font-weight: 700; }
+  .node-copy { fill: var(--ink-2); font-size: 12px; }
+  .connection-label { fill: var(--accent-text); font: 11px var(--font-mono); }
+</style>

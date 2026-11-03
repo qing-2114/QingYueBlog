@@ -3,22 +3,7 @@ import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
-import ProjectLab from '../../components/ProjectLab.astro';
-import ReActLab from '../../components/ReActLab.astro';
-import ExperimentFlow from '../../components/ExperimentFlow.astro';
-import {
-    latestFlows,
-    agentScopeFlow,
-    autoGenFlow,
-    camelFlow,
-    langGraphFlow,
-    myLlmFlow,
-    myReActAgentFlow,
-    myReflectionAgentFlow,
-    mySimpleAgentFlow,
-    planFlow,
-    reflectionFlow,
-} from '../../data/experiment-flows';
+import AgentProject from '../../components/AgentProject.astro';
 
 export async function getStaticPaths() {
     const projects = await getCollection('projects');
@@ -30,20 +15,13 @@ const project = Astro.props;
 const { Content, headings } = await render(project);
 const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
 const isAgent = project.id === 'my-hello-agent';
-const coreFlows = [planFlow, reflectionFlow, agentScopeFlow, autoGenFlow, camelFlow, langGraphFlow];
-const extensionFlows = [myLlmFlow, mySimpleAgentFlow, myReActAgentFlow, myReflectionAgentFlow];
 const projectNavigation = isAgent
     ? [
-        ...latestFlows.map((flow) => ({ label: flow.title.split(' · ')[0], id: flow.id })),
-        { label: '旅行 Agent', id: 'lab-title' },
-        { label: 'ReAct', id: 'react-lab-title' },
-        { label: 'Plan-and-Solve', id: planFlow.id },
-        { label: 'Reflection', id: reflectionFlow.id },
-        { label: 'AgentScope', id: agentScopeFlow.id },
-        { label: 'AutoGen', id: autoGenFlow.id },
-        { label: 'CAMEL', id: camelFlow.id },
-        { label: 'LangGraph', id: langGraphFlow.id },
-        { label: '第七章扩展', id: 'chapter-seven-title' },
+        { label: '项目概览', id: 'agent-overview' },
+        { label: '旅行助手', id: 'trip-showcase' },
+        { label: '深度研究', id: 'research-showcase' },
+        { label: '学习路径', id: 'learning-path' },
+        { label: '源码与验证', id: 'agent-evidence' },
     ]
     : headings.filter((heading) => heading.depth === 2).map((heading) => ({ label: heading.text, id: heading.slug }));
 ---
@@ -82,8 +60,8 @@ const projectNavigation = isAgent
             </header>
 
             {projectNavigation.length > 0 && (
-                <nav class="project-navigation" aria-label={isAgent ? '快速前往实验' : '项目内容目录'}>
-                    <span>{isAgent ? '实验索引' : '内容索引'}</span>
+                <nav class="project-navigation" aria-label={isAgent ? 'Hello Agents 阅读导航' : '项目内容目录'}>
+                    <span>{isAgent ? '阅读导航' : '内容索引'}</span>
                     <ul>
                         {projectNavigation.map((item) => <li><a href={`#${item.id}`}>{item.label}</a></li>)}
                     </ul>
@@ -91,26 +69,11 @@ const projectNavigation = isAgent
             )}
 
             <div class="project-body">
-                <article class="project-prose"><Content /></article>
-                {isAgent && latestFlows.map((flow) => <ExperimentFlow flow={flow} />)}
-                {isAgent && <ProjectLab />}
-
-                {isAgent && <ReActLab />}
-                {isAgent && coreFlows.map((flow) => <ExperimentFlow flow={flow} />)}
+                <article class="project-prose" id={isAgent ? 'agent-overview' : undefined}><Content /></article>
+                {isAgent && <AgentProject />}
                 {project.data.source && (
                     <p class="source-note">学习来源：<a href={project.data.source} rel="noreferrer">{project.data.source}</a></p>
                 )}
-                {isAgent && (
-                    <section class="chapter-seven-heading" aria-labelledby="chapter-seven-title">
-                        <p class="eyebrow">7-EXPERIMENT / EXTENSIONS</p>
-                        <h2 id="chapter-seven-title">第七章 · 四种独立扩展方法</h2>
-                        <p>四个实验分别扩展模型 Provider、SimpleAgent 工具能力、ReAct 自纠能力和通用 Reflection 评估循环。它们共享项目配置，彼此独立。</p>
-                        <nav class="extension-navigation" aria-label="第七章扩展实验">
-                            <ul>{extensionFlows.map((flow) => <li><a href={`#${flow.id}`}>{flow.title.split(' · ')[0]}</a></li>)}</ul>
-                        </nav>
-                    </section>
-                )}
-                {isAgent && extensionFlows.map((flow) => <ExperimentFlow flow={flow} />)}
             </div>
             <footer class="project-footer">
                 <a class="text-link" href={`${base}projects/`}>← 返回实验与项目</a>
@@ -265,8 +228,7 @@ const projectNavigation = isAgent
         font-size: var(--step--2);
         letter-spacing: 0.08em;
     }
-    .project-navigation ul,
-    .extension-navigation ul {
+    .project-navigation ul {
         display: flex;
         flex-wrap: wrap;
         gap: 0 var(--space-s);
@@ -274,8 +236,7 @@ const projectNavigation = isAgent
         padding: 0;
         list-style: none;
     }
-    .project-navigation a,
-    .extension-navigation a {
+    .project-navigation a {
         display: inline-flex;
         align-items: center;
         min-height: 44px;
@@ -285,8 +246,7 @@ const projectNavigation = isAgent
         text-decoration: none;
         transition: color var(--motion-fast), border-color var(--motion-fast);
     }
-    .project-navigation a:hover,
-    .extension-navigation a:hover {
+    .project-navigation a:hover {
         color: var(--accent-text);
         border-bottom-color: var(--accent);
     }
@@ -303,7 +263,13 @@ const projectNavigation = isAgent
         line-height: 1.9;
     }
     .agent-project .project-prose {
-        margin: 0;
+        width: 100%;
+        margin: var(--space-xl) 0 var(--space-l);
+    }
+    .agent-project .project-prose :global(h2) {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: 0;
     }
     .project-prose :global(h2) {
         margin-top: var(--space-2xl);
@@ -341,27 +307,6 @@ const projectNavigation = isAgent
         color: var(--muted);
         font-size: var(--step--2);
         overflow-wrap: anywhere;
-    }
-
-    .chapter-seven-heading {
-        margin: var(--space-2xl) 0 var(--space-m);
-        padding-top: var(--space-l);
-        border-top: 2px solid var(--ink);
-    }
-    .chapter-seven-heading h2 {
-        margin-bottom: var(--space-s);
-        font-family: var(--font-display);
-        font-size: var(--step-2);
-        font-weight: 400;
-    }
-    .chapter-seven-heading > p:last-of-type {
-        max-width: 46rem;
-        margin-bottom: var(--space-2xs);
-        color: var(--muted);
-        font-size: var(--step--1);
-    }
-    .extension-navigation a {
-        color: var(--accent-text);
     }
 
     .project-footer {
@@ -406,8 +351,7 @@ const projectNavigation = isAgent
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .project-navigation a,
-        .extension-navigation a {
+        .project-navigation a {
             transition: none;
         }
     }

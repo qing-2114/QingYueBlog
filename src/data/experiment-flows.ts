@@ -267,6 +267,7 @@ export const camelFlow: ExperimentFlow = {
 };
 
 
+// Individual diagrams stay addressable; presentation order is defined by learningStages below.
 export const latestFlows: ExperimentFlow[] = [
   {
     "id": "chapter-eight-memory",
@@ -788,4 +789,43 @@ export const latestFlows: ExperimentFlow[] = [
       "n4"
     ]
   }
+];
+
+const chapterFlow = (id: string): ExperimentFlow => {
+  const flow = latestFlows.find((item) => item.id === id);
+  if (!flow) throw new Error(`Missing experiment flow: ${id}`);
+  return flow;
+};
+
+export const tripFlow = chapterFlow('chapter-thirteen-trip');
+export const researchFlow = chapterFlow('chapter-fourteen-research');
+
+export const learningStages = [
+  {
+    id: 'agent-foundations', number: '01', title: '从一个 Agent 开始', chapters: '1.3 / 4',
+    summary: '建立模型、工具与反馈的基本循环，再比较 ReAct、规划求解与反思迭代。',
+    takeaway: '起步的旅行推荐实验加入偏好记忆与模拟票务；它与第十三章的四 Agent 旅行应用分属不同阶段。',
+    labs: true, flows: [planFlow, reflectionFlow],
+    links: [{ label: '旅行推荐与会话', id: 'lab-title' }, { label: 'ReAct', id: 'react-lab-title' }],
+  },
+  {
+    id: 'agent-frameworks', number: '02', title: '框架协作与能力扩展', chapters: '6 / 7',
+    summary: '先体验多 Agent 框架，再独立扩展 Provider、工具调用、解析自纠与反思评估。',
+    takeaway: '第六章比较 AgentScope、AutoGen、CAMEL 与 LangGraph；第七章的四种扩展彼此独立。',
+    labs: false,
+    flows: [agentScopeFlow, autoGenFlow, camelFlow, langGraphFlow, myLlmFlow, mySimpleAgentFlow, myReActAgentFlow, myReflectionAgentFlow],
+    links: [],
+  },
+  {
+    id: 'agent-context', number: '03', title: '让信息进入上下文', chapters: '8 / 9',
+    summary: '将记忆、PDF 检索与学习笔记结合，再练习 GSSC 上下文工程。',
+    takeaway: '从“能调用工具”推进到“选择哪些信息交给模型”，关注资料检索、上下文组织与预算。',
+    labs: false, flows: [chapterFlow('chapter-eight-memory'), chapterFlow('chapter-nine-context')], links: [],
+  },
+  {
+    id: 'agent-protocols', number: '04', title: '连接工具，并评估结果', chapters: '10 / 12',
+    summary: '练习 MCP、A2A、ANP 通信，再用 BFCL 五样本走通工具调用评估。',
+    takeaway: 'MCP 天气助手接入真实模型；A2A 客服由模型驱动，协商使用规则；ANP 网络示例使用内存数据。BFCL 内置与官方子集复核均为 5/5。',
+    labs: false, flows: [chapterFlow('chapter-ten-mcp'), chapterFlow('chapter-twelve-bfcl')], links: [],
+  },
 ];

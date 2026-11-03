@@ -1,7 +1,7 @@
 ---
 import type { ExperimentFlow } from '../data/experiment-flows';
-interface Props { flow: ExperimentFlow }
-const { flow } = Astro.props;
+interface Props { flow: ExperimentFlow; headingLevel?: 'h2' | 'h3' }
+const { flow, headingLevel: Heading = 'h2' } = Astro.props;
 const height = flow.height ?? 385;
 const width = flow.width ?? 800;
 const first = flow.nodes[0];
@@ -12,7 +12,7 @@ const kinds = ['main', 'loop', 'finish'] as const;
 ---
 <section class="experiment-flow" id={flow.id} aria-labelledby={`${flow.id}-title`} data-sequence={JSON.stringify(flow.sequence)}>
   <div class="lab-heading">
-    <div><p class="eyebrow">{flow.eyebrow}</p><h2 id={`${flow.id}-title`}>{flow.title}</h2></div>
+    <div><p class="eyebrow">{flow.eyebrow}</p><Heading id={`${flow.id}-title`}>{flow.title}</Heading></div>
     <span class="run-state">{flow.status}</span>
   </div>
   <p class="lab-summary">{flow.summary}</p>
@@ -139,7 +139,7 @@ const kinds = ['main', 'loop', 'finish'] as const;
     font-size: 0.66rem;
     font-weight: 500;
   }
-  .lab-heading h2 {
+  .lab-heading :is(h2, h3) {
     margin: 0;
     font-family: var(--font-display);
     font-size: var(--step-1);
@@ -468,7 +468,7 @@ const kinds = ['main', 'loop', 'finish'] as const;
     .lab-heading {
       display: block;
     }
-    .lab-heading h2 {
+    .lab-heading :is(h2, h3) {
       font-size: var(--step-0);
     }
     .run-state {

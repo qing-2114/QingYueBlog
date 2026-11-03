@@ -1,30 +1,62 @@
 ---
-title: 'Hello Agents 学习进度：从通信协议到旅行与深度研究助手'
-description: '第十、十二至十四章实践记录：协议工具、BFCL 五样本评估、四 Agent 旅行规划与流式深度研究工作台。'
+title: 'Hello Agents 实践：从基础循环到旅行与深度研究助手'
+description: '按基础、框架、上下文、协议评估与综合应用，整理 Hello Agents 学习路线；附旅行与研究助手的成果入口、结构和验证记录。'
 category: '项目实践'
 tags: ['Hello Agents', 'AI Agent', 'MCP', 'BFCL', 'SSE']
 pubDate: '2026-11-03'
 updatedDate: '2026-11-03'
 ---
 
-基于 [Datawhale「Hello Agents」](https://hello-agents.datawhale.cc/) 的学习项目，现已推进至第十四章相关实践，覆盖的章节并不连续。最新提交为 `7a3fe96`，集中加入评估、旅行助手与深度研究实验。
+基于 [Datawhale「Hello Agents」](https://hello-agents.datawhale.cc/) 的学习，我从单个 Agent 的工具循环出发，逐步练习框架协作、记忆与上下文、通信协议和性能评估，最后把这些能力组合成自己的旅行助手与深度研究工作台。
 
-## 从工具接入到应用协作
+[查看项目档案：成果截图、系统结构与可播放流程 →](/QingYueBlog/projects/my-hello-agent/)
 
-第十章按 MCP、A2A、ANP 分类整理实验。MCP 天气助手通过真实模型调用工具，主天气源失败后可使用 Open-Meteo；A2A 包含模型驱动的客服与规则驱动的协商；ANP 包含服务发现、网络和调度示例。
+## 先看做出来的两个应用
 
-第十二章开始给模型工具调用做评估：BFCL `simple_python` 前五条真实 API 预测，HelloAgents 内置 AST 评分及官方 CLI 的 partial-eval 复核均为 5/5。这只是小样本流程验证，完整 BFCL 和 GAIA 评测仍待推进。
+### 第十三章：行旅，把偏好变成可编辑的行程
 
-## 自己的旅行助手
+在自己的 `trip-assistant` 中，景点、天气、酒店与规划四个 Agent 顺序协作。前三个角色查询信息，最后由规划角色整合为行程，并校验日期、景点、餐宿及预算。
 
-第十三章除了保留官方参考样例，还实现了独立的 `trip-assistant`：景点、天气、酒店与规划四个 Agent 顺序协作，接入高德 MCP 和 Unsplash。Vue 页面支持行程编辑、预算更新、地图导航、PNG/PDF 导出。
+Vue 结果页把信息分成预算、地图、每日行程和天气。景点支持排序、删除与保存，预算随编辑更新；高德地图编号与景点顺序对应，结果可以导出为 PNG 或 PDF。天气整合高德、香港天文台与 Open-Meteo，按日期补缺并保留来源。
 
-11 月 3 日的验证记录覆盖真实 API、北京一日游浏览器流程、两日 HTTP 行程、地图、编辑、导出与窄屏交互。天气进一步加入 HKO 和 Open-Meteo，按预报覆盖日期补缺并显示来源。天气的全球覆盖不代表景点与酒店搜索已具备相同覆盖范围。
+11 月 3 日重新通过真实界面生成北京一日行程，结果包含三个景点、地图与天气，预算估算为 487 元。项目档案展示了这次结果的行程明细与结果概览截图；价格与图片仍以实际查询和出行为准。
 
-## 自己的深度研究工作台
+[看旅行助手截图与结构图 →](/QingYueBlog/projects/my-hello-agent/#trip-showcase)
 
-第十四章的 `research-assistant` 由规划、总结与报告三个角色协作。规划后逐任务搜索，摘要保留来源编号和 URL，再汇总报告；NoteTool 保存计划、任务资料及报告，搜索结果支持去重、长度预算与缓存。
+### 第十四章：研序，把问题变成有来源的报告
 
-FastAPI 使用 SSE 向 Vue 工作台发送阶段进度、任务总结和报告，支持 Markdown 下载和停止研究。真实 HTTP → Tavily → 模型完整链路与桌面、手机浏览器检查已有通过记录。笔记用于事后读取进度，自动断点续跑仍待实现。
+自己的 `research-assistant` 把研究拆成规划、逐任务搜索与总结、报告生成。三个角色共享模型，ToolRegistry 统一管理搜索和笔记；搜索结果保留来源编号与 URL，并经过去重、长度预算与缓存处理。
 
-[进入项目页，播放各章执行流程](/QingYueBlog/projects/my-hello-agent/) · [查看源码与验证记录](https://github.com/qing-2114/my-hello-agent)
+Vue 工作台通过 FastAPI SSE 展示任务路径、阶段进度与逐任务总结。研究结束后可以阅读报告、打开来源并下载 Markdown。NoteTool 把研究计划、任务总结与报告保存到本地，便于事后回看；自动断点续跑仍待实现。
+
+本次真实研究主题是“RAG 与长上下文在知识库问答中的比较”，完成 5 项任务，界面显示 20 个独立来源，保存 7 条笔记并生成最终报告。截图展示的是应用的执行与交付能力，报告中的结论还需要结合原始来源判断。
+
+[看研究工作台截图与结构图 →](/QingYueBlog/projects/my-hello-agent/#research-showcase)
+
+## 回看学习路径：能力是怎样组合起来的
+
+| 阶段 | 章节 | 学习重点 |
+| --- | --- | --- |
+| 基础循环 | 1.3 / 4 | 从旅行推荐到 ReAct、Plan-and-Solve 与 Reflection，理解模型决策、工具结果和迭代反馈 |
+| 框架与扩展 | 6 / 7 | 体验 AgentScope、AutoGen、CAMEL、LangGraph，再独立扩展模型 Provider、工具调用与反思能力 |
+| 记忆与上下文 | 8 / 9 | 组合记忆、PDF 检索和笔记，练习上下文选择与组织 |
+| 协议与评估 | 10 / 12 | 通过 MCP、A2A、ANP 连接工具与 Agent，再用 BFCL 检查工具调用结果 |
+| 综合应用 | 13 / 14 | 把协作、数据接入、校验和结果交付做成完整的 Web 应用 |
+
+早期的旅行推荐实验使用偏好记忆与模拟票务；第十三章则是独立的四 Agent 应用。把两者放回各自的学习阶段，能更清楚地看到从基础循环到应用协作的变化。
+
+第十章按 MCP、A2A、ANP 分类：MCP 天气助手通过真实模型调用工具；A2A 包含模型驱动的客服与规则驱动的协商；ANP 包含服务发现、内存网络及调度示例。
+
+第十二章在 BFCL `simple_python` 前五题上完成真实 API 预测，HelloAgents 内置 AST 评分与官方 CLI 的 `partial-eval` 复核均为 **5/5**。这个结果用于确认评估链路跑通，完整 BFCL 与 GAIA 仍待推进。
+
+[按阶段展开实验流程 →](/QingYueBlog/projects/my-hello-agent/#learning-path)
+
+## 从“能运行”继续走向“可检查”
+
+这两章实践让我开始更多关注模型输出之后的工作：旅行结果要能校验、修改和导出，研究结果要保留来源和阶段产物。界面也需要表达真实状态，让使用者知道任务走到了哪里、得到了什么结果。
+
+当前章节覆盖并不连续，第十一章 Agentic-RL 尚未列入已完成实验。后续继续补充评估与稳定性验证，同时保留每次实测的范围和结果。
+
+- [仓库与各章说明](https://github.com/qing-2114/my-hello-agent)
+- [旅行助手的真实 API、HTTP、地图、编辑和导出验证](https://github.com/qing-2114/my-hello-agent/blob/master/13-experiment/trip-assistant/tests/VALIDATION-2026-11-03.md)
+- [研究助手的 SSE、搜索、ToolRegistry 与笔记验证](https://github.com/qing-2114/my-hello-agent/tree/master/14-experiment/research-assistant)
