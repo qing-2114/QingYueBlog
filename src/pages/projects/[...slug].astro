@@ -7,6 +7,7 @@ import ProjectLab from '../../components/ProjectLab.astro';
 import ReActLab from '../../components/ReActLab.astro';
 import ExperimentFlow from '../../components/ExperimentFlow.astro';
 import {
+    latestFlows,
     agentScopeFlow,
     autoGenFlow,
     camelFlow,
@@ -33,6 +34,7 @@ const coreFlows = [planFlow, reflectionFlow, agentScopeFlow, autoGenFlow, camelF
 const extensionFlows = [myLlmFlow, mySimpleAgentFlow, myReActAgentFlow, myReflectionAgentFlow];
 const projectNavigation = isAgent
     ? [
+        ...latestFlows.map((flow) => ({ label: flow.title.split(' · ')[0], id: flow.id })),
         { label: '旅行 Agent', id: 'lab-title' },
         { label: 'ReAct', id: 'react-lab-title' },
         { label: 'Plan-and-Solve', id: planFlow.id },
@@ -89,8 +91,10 @@ const projectNavigation = isAgent
             )}
 
             <div class="project-body">
-                {isAgent && <ProjectLab />}
                 <article class="project-prose"><Content /></article>
+                {isAgent && latestFlows.map((flow) => <ExperimentFlow flow={flow} />)}
+                {isAgent && <ProjectLab />}
+
                 {isAgent && <ReActLab />}
                 {isAgent && coreFlows.map((flow) => <ExperimentFlow flow={flow} />)}
                 {project.data.source && (

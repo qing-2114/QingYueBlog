@@ -1,10 +1,23 @@
 ---
 title: 'my-hello-agent'
-description: '基于 Datawhale「Hello Agents」教程的学习与实践：从旅行智能体、ReAct、规划与反思推进到多智能体框架、LangGraph 搜索问答，以及第七章的 LLM、工具调用与通用 Reflection 扩展。'
+description: '基于 Datawhale「Hello Agents」教程的学习实践：从 ReAct、记忆与上下文工程，推进到 MCP/A2A/ANP、BFCL 评估、自主旅行助手与流式深度研究工作台。'
 status: active
-statusLabel: 进行中
+statusLabel: 持续实践 · 推进至第十四章
 startDate: '2026-08-28'
-updatedDate: '2026-09-20'
-tags: ['AI Agent', 'Python', 'LangGraph', 'ReAct', 'Reflection', '智能体评估', 'CAMEL', 'AgentScope', 'AutoGen']
+updatedDate: '2026-11-03'
+tags: ['AI Agent', 'Python', 'MCP', 'A2A', 'ANP', 'BFCL', 'Vue', 'FastAPI', 'SSE']
 source: 'https://hello-agents.datawhale.cc/'
+repo: 'https://github.com/qing-2114/my-hello-agent'
 ---
+## 最新进度 · 2026 年 11 月 3 日
+
+当前实验覆盖 `1.3 / 3.2 / 4 / 6 / 7 / 8 / 9 / 10 / 12 / 13 / 14`。沿教程逐章学习，并把工具调用、多 Agent 协作和评估落到自己的应用中；第十一章 Agentic-RL 尚未列入已完成实验。
+
+- **第十章 · 通信协议**：MCP 天气工具接入真实模型；A2A 客服与协商示例；ANP 服务发现、网络与任务调度。协商使用规则逻辑，网络拓扑示例使用内存数据。
+- **第十二章 · 性能评估**：BFCL `simple_python` 前 5 条真实预测，内置评估与官方 CLI 子集复核均为 **5/5**。这是五样本练习，完整 BFCL 与 GAIA 评测尚未完成。
+- **第十三章 · 自主旅行助手**：四 Agent 顺序协作，高德 MCP 16 个工具、Unsplash 图片、行程编辑与预算、地图导航、PNG/PDF 导出。已有真实 API、HTTP 与浏览器全流程验证记录；新增高德 / HKO / Open-Meteo 天气来源与日期缺失提示。
+- **第十四章 · 自主深度研究助手**：规划、逐任务搜索与总结、报告生成；共享 ToolRegistry、来源编号与链接、搜索缓存、NoteTool 落盘；Vue + FastAPI SSE 展示阶段进度并下载 Markdown。真实 HTTP → Tavily → 模型全流程与桌面/手机浏览器验证已有通过记录。
+
+以下动画对应源码中的执行流程，状态依据各章 README 与验证记录；动画播放用于解释流程。
+
+[仓库与章节说明](https://github.com/qing-2114/my-hello-agent) · [旅行助手完整验证](https://github.com/qing-2114/my-hello-agent/blob/master/13-experiment/trip-assistant/tests/VALIDATION-2026-11-03.md) · [深度研究实现与验证](https://github.com/qing-2114/my-hello-agent/tree/master/14-experiment/research-assistant)

@@ -265,3 +265,527 @@ export const camelFlow: ExperimentFlow = {
     { id: 'dialogue-output', from: 'dialogue', to: 'output', d: 'M 604 192 H 645', kind: 'finish', label: '章节完成', x: 625, y: 178 },
   ], sequence: ['input', 'writer', 'dialogue', 'psychologist', 'dialogue', 'writer', 'dialogue', 'output'],
 };
+
+
+export const latestFlows: ExperimentFlow[] = [
+  {
+    "id": "chapter-eight-memory",
+    "title": "第八章 · 记忆与 PDF 问答",
+    "eyebrow": "8-EXPERIMENT",
+    "summary": "MemoryTool 与 RAGTool 组合文档检索、问答与学习笔记。",
+    "status": "已实现 · 有真实 API 记录",
+    "record": "既有章节记录：记忆与检索真实 API 验证；PDF 助手保留 Gradio 界面。",
+    "note": "实线表示主执行链，点线表示完成分支，虚线表示任务回环。点击节点查看源码定位与实现说明。",
+    "width": 800,
+    "height": 230,
+    "nodes": [
+      {
+        "id": "n0",
+        "label": "加载文档",
+        "tag": "STEP 1",
+        "x": 30,
+        "y": 90,
+        "detail": "加载 PDF 并建立可检索知识。",
+        "file": "8-experiment/core/pdf_assistant.py"
+      },
+      {
+        "id": "n1",
+        "label": "检索上下文",
+        "tag": "STEP 2",
+        "x": 210,
+        "y": 90,
+        "detail": "结合记忆与知识库检索结果。",
+        "file": "8-experiment/core/pdf_assistant.py"
+      },
+      {
+        "id": "n2",
+        "label": "回答与笔记",
+        "tag": "STEP 3",
+        "x": 390,
+        "y": 90,
+        "detail": "基于检索回答，保存学习笔记。",
+        "file": "8-experiment/core/pdf_assistant.py"
+      },
+      {
+        "id": "n3",
+        "label": "回顾与报告",
+        "tag": "STEP 4",
+        "x": 570,
+        "y": 90,
+        "detail": "汇总学习内容并输出报告。",
+        "file": "8-experiment/demos/pdf_learning_assistant_demo.py",
+        "kind": "finish"
+      }
+    ],
+    "routes": [
+      {
+        "id": "r0",
+        "from": "n0",
+        "to": "n1",
+        "d": "M 174 122 H 205",
+        "kind": "main"
+      },
+      {
+        "id": "r1",
+        "from": "n1",
+        "to": "n2",
+        "d": "M 354 122 H 385",
+        "kind": "main"
+      },
+      {
+        "id": "r2",
+        "from": "n2",
+        "to": "n3",
+        "d": "M 534 122 H 565",
+        "kind": "finish"
+      }
+    ],
+    "sequence": [
+      "n0",
+      "n1",
+      "n2",
+      "n3"
+    ]
+  },
+  {
+    "id": "chapter-nine-context",
+    "title": "第九章 · GSSC 上下文工程",
+    "eyebrow": "9-EXPERIMENT",
+    "summary": "从记忆、知识库和对话历史中构建预算内的结构化上下文。",
+    "status": "已运行 · 真实检索 + LLM",
+    "record": "2026.09.20 · 完整运行构建约 628 tokens 上下文，模型引用知识库与记忆。",
+    "note": "实线表示主执行链，点线表示完成分支，虚线表示任务回环。点击节点查看源码定位与实现说明。",
+    "width": 800,
+    "height": 230,
+    "nodes": [
+      {
+        "id": "n0",
+        "label": "Gather 收集",
+        "tag": "STEP 1",
+        "x": 30,
+        "y": 90,
+        "detail": "收集系统指令、记忆、RAG 及最近对话。",
+        "file": "9-experiment/demos/context_builder_demo.py"
+      },
+      {
+        "id": "n1",
+        "label": "Select 筛选",
+        "tag": "STEP 2",
+        "x": 210,
+        "y": 90,
+        "detail": "按相关性、新近性和预算筛选。",
+        "file": "9-experiment/README.md"
+      },
+      {
+        "id": "n2",
+        "label": "Structure 组织",
+        "tag": "STEP 3",
+        "x": 390,
+        "y": 90,
+        "detail": "构建六段上下文模板。",
+        "file": "9-experiment/README.md"
+      },
+      {
+        "id": "n3",
+        "label": "Compress 压缩",
+        "tag": "STEP 4",
+        "x": 570,
+        "y": 90,
+        "detail": "超预算按行截断，再交给模型回答。",
+        "file": "9-experiment/README.md",
+        "kind": "finish"
+      }
+    ],
+    "routes": [
+      {
+        "id": "r0",
+        "from": "n0",
+        "to": "n1",
+        "d": "M 174 122 H 205",
+        "kind": "main"
+      },
+      {
+        "id": "r1",
+        "from": "n1",
+        "to": "n2",
+        "d": "M 354 122 H 385",
+        "kind": "main"
+      },
+      {
+        "id": "r2",
+        "from": "n2",
+        "to": "n3",
+        "d": "M 534 122 H 565",
+        "kind": "finish"
+      }
+    ],
+    "sequence": [
+      "n0",
+      "n1",
+      "n2",
+      "n3"
+    ]
+  },
+  {
+    "id": "chapter-ten-mcp",
+    "title": "第十章 · MCP 天气工具闭环",
+    "eyebrow": "10-EXPERIMENT",
+    "summary": "自定义 stdio 天气服务器让模型取得带来源与时间的天气数据。",
+    "status": "已运行 · 真实模型 + 天气",
+    "record": "2026.11.02 · wttr.in SSL 失败后，Open-Meteo 备用源成功；真实 MCP 与模型工具调用通过。",
+    "note": "实线表示主执行链，点线表示完成分支，虚线表示任务回环。点击节点查看源码定位与实现说明。",
+    "width": 800,
+    "height": 230,
+    "nodes": [
+      {
+        "id": "n0",
+        "label": "发现工具",
+        "tag": "STEP 1",
+        "x": 30,
+        "y": 90,
+        "detail": "客户端启动 stdio 服务并发现工具。",
+        "file": "10-experiment/mcp/demos/weather_assistant.py"
+      },
+      {
+        "id": "n1",
+        "label": "模型选工具",
+        "tag": "STEP 2",
+        "x": 210,
+        "y": 90,
+        "detail": "真实模型选择城市天气工具。",
+        "file": "10-experiment/mcp/demos/weather_assistant.py"
+      },
+      {
+        "id": "n2",
+        "label": "查询天气源",
+        "tag": "STEP 3",
+        "x": 390,
+        "y": 90,
+        "detail": "wttr.in 失败时请求 Open-Meteo，保留来源信息。",
+        "file": "10-experiment/mcp/demos/weather_mcp_server.py"
+      },
+      {
+        "id": "n3",
+        "label": "返回回答",
+        "tag": "STEP 4",
+        "x": 570,
+        "y": 90,
+        "detail": "工具结果回灌模型，说明天气与来源。",
+        "file": "10-experiment/mcp/demos/weather_assistant.py",
+        "kind": "finish"
+      }
+    ],
+    "routes": [
+      {
+        "id": "r0",
+        "from": "n0",
+        "to": "n1",
+        "d": "M 174 122 H 205",
+        "kind": "main"
+      },
+      {
+        "id": "r1",
+        "from": "n1",
+        "to": "n2",
+        "d": "M 354 122 H 385",
+        "kind": "main"
+      },
+      {
+        "id": "r2",
+        "from": "n2",
+        "to": "n3",
+        "d": "M 534 122 H 565",
+        "kind": "finish"
+      }
+    ],
+    "sequence": [
+      "n0",
+      "n1",
+      "n2",
+      "n3"
+    ]
+  },
+  {
+    "id": "chapter-twelve-bfcl",
+    "title": "第十二章 · BFCL 五样本评估",
+    "eyebrow": "12-EXPERIMENT",
+    "summary": "真实模型预测与评分分离，复用预测进行官方 CLI 子集复核。",
+    "status": "真实预测 · 官方子集 5/5",
+    "record": "2026.11.03 · simple_python 前 5 题内置和官方 CLI 均为 5/5；完整 BFCL / GAIA 尚未完成。",
+    "note": "实线表示主执行链，点线表示完成分支，虚线表示任务回环。点击节点查看源码定位与实现说明。",
+    "width": 800,
+    "height": 230,
+    "nodes": [
+      {
+        "id": "n0",
+        "label": "加载五题",
+        "tag": "STEP 1",
+        "x": 30,
+        "y": 90,
+        "detail": "使用 BFCL v4 simple_python 前五条。",
+        "file": "12-experiment/bfcl/demos/evaluate_simple_python.py"
+      },
+      {
+        "id": "n1",
+        "label": "真实模型预测",
+        "tag": "STEP 2",
+        "x": 210,
+        "y": 90,
+        "detail": "读取统一配置请求真实 API。",
+        "file": "12-experiment/bfcl/demos/evaluate_simple_python.py"
+      },
+      {
+        "id": "n2",
+        "label": "内置 AST 评分",
+        "tag": "STEP 3",
+        "x": 390,
+        "y": 90,
+        "detail": "HelloAgents 内置评分得到 5/5。",
+        "file": "12-experiment/README.md"
+      },
+      {
+        "id": "n3",
+        "label": "官方 CLI 复核",
+        "tag": "STEP 4",
+        "x": 570,
+        "y": 90,
+        "detail": "复用五条预测做 partial-eval，不重复调用模型。",
+        "file": "12-experiment/README.md",
+        "kind": "finish"
+      }
+    ],
+    "routes": [
+      {
+        "id": "r0",
+        "from": "n0",
+        "to": "n1",
+        "d": "M 174 122 H 205",
+        "kind": "main"
+      },
+      {
+        "id": "r1",
+        "from": "n1",
+        "to": "n2",
+        "d": "M 354 122 H 385",
+        "kind": "main"
+      },
+      {
+        "id": "r2",
+        "from": "n2",
+        "to": "n3",
+        "d": "M 534 122 H 565",
+        "kind": "finish"
+      }
+    ],
+    "sequence": [
+      "n0",
+      "n1",
+      "n2",
+      "n3"
+    ]
+  },
+  {
+    "id": "chapter-thirteen-trip",
+    "title": "第十三章 · 四 Agent 旅行助手",
+    "eyebrow": "13-EXPERIMENT",
+    "summary": "依次收集景点、天气、酒店，再生成经校验的行程并展示地图。",
+    "status": "自主实现 · 真实全流程已验证",
+    "record": "2026.11.03 · 真实 API、HTTP、浏览器行程、编辑、地图和 PNG/PDF 验证通过；新增多源天气与滚动修复。",
+    "note": "实线表示主执行链，点线表示完成分支，虚线表示任务回环。点击节点查看源码定位与实现说明。",
+    "width": 930,
+    "height": 230,
+    "nodes": [
+      {
+        "id": "n0",
+        "label": "景点搜索",
+        "tag": "STEP 1",
+        "x": 30,
+        "y": 90,
+        "detail": "景点 Agent 使用高德 MCP 搜索。",
+        "file": "13-experiment/trip-assistant/demos/backend/app/agents/trip_planner_agent.py"
+      },
+      {
+        "id": "n1",
+        "label": "天气查询",
+        "tag": "STEP 2",
+        "x": 210,
+        "y": 90,
+        "detail": "按目的地和日期组合高德、HKO、Open-Meteo；保留缺失说明。",
+        "file": "13-experiment/trip-assistant/demos/backend/app/services/weather_service.py"
+      },
+      {
+        "id": "n2",
+        "label": "酒店推荐",
+        "tag": "STEP 3",
+        "x": 390,
+        "y": 90,
+        "detail": "酒店 Agent 查询并整理住宿建议。",
+        "file": "13-experiment/trip-assistant/demos/backend/app/agents/trip_planner_agent.py"
+      },
+      {
+        "id": "n3",
+        "label": "规划与校验",
+        "tag": "STEP 4",
+        "x": 570,
+        "y": 90,
+        "detail": "整合信息并校验日期、景点、三餐和预算；不合格修正一次。",
+        "file": "13-experiment/trip-assistant/demos/backend/app/agents/trip_planner_agent.py"
+      },
+      {
+        "id": "n4",
+        "label": "展示与导出",
+        "tag": "STEP 5",
+        "x": 750,
+        "y": 90,
+        "detail": "补图后展示行程，支持编辑、地图与 PNG/PDF。",
+        "file": "13-experiment/trip-assistant/demos/frontend/src/services/export.ts",
+        "kind": "finish"
+      }
+    ],
+    "routes": [
+      {
+        "id": "r0",
+        "from": "n0",
+        "to": "n1",
+        "d": "M 174 122 H 205",
+        "kind": "main"
+      },
+      {
+        "id": "r1",
+        "from": "n1",
+        "to": "n2",
+        "d": "M 354 122 H 385",
+        "kind": "main"
+      },
+      {
+        "id": "r2",
+        "from": "n2",
+        "to": "n3",
+        "d": "M 534 122 H 565",
+        "kind": "main"
+      },
+      {
+        "id": "r3",
+        "from": "n3",
+        "to": "n4",
+        "d": "M 714 122 H 745",
+        "kind": "finish"
+      }
+    ],
+    "sequence": [
+      "n0",
+      "n1",
+      "n2",
+      "n3",
+      "n4"
+    ]
+  },
+  {
+    "id": "chapter-fourteen-research",
+    "title": "第十四章 · 流式深度研究",
+    "eyebrow": "14-EXPERIMENT",
+    "summary": "三个角色协作，逐任务保留来源与笔记，SSE 驱动研究工作台。",
+    "status": "自主实现 · 真实 SSE 全链路通过",
+    "record": "2026.11.03 · 真实 HTTP → Tavily → 模型全流程及桌面/手机验证通过；三任务研究保存计划、总结与报告共五条笔记。",
+    "note": "实线表示主执行链，点线表示完成分支，虚线表示任务回环。点击节点查看源码定位与实现说明。",
+    "width": 930,
+    "height": 290,
+    "nodes": [
+      {
+        "id": "n0",
+        "label": "规划任务",
+        "tag": "STEP 1",
+        "x": 30,
+        "y": 90,
+        "detail": "规划 Agent 生成任务，保存计划笔记。",
+        "file": "14-experiment/research-assistant/demos/backend/app/agents/research_agents.py"
+      },
+      {
+        "id": "n1",
+        "label": "搜索与缓存",
+        "tag": "STEP 2",
+        "x": 210,
+        "y": 90,
+        "detail": "逐任务搜索，去重、限长并复用有效缓存。",
+        "file": "14-experiment/research-assistant/demos/backend/app/services/search_service.py"
+      },
+      {
+        "id": "n2",
+        "label": "总结与落盘",
+        "tag": "STEP 3",
+        "x": 390,
+        "y": 90,
+        "detail": "总结保留来源编号与 URL，写入 NoteTool 后报告任务完成。",
+        "file": "14-experiment/research-assistant/demos/backend/app/agents/deep_research_agent.py"
+      },
+      {
+        "id": "n3",
+        "label": "生成研究报告",
+        "tag": "STEP 4",
+        "x": 570,
+        "y": 90,
+        "detail": "全部任务完成后汇总并保存报告笔记。",
+        "file": "14-experiment/research-assistant/demos/backend/app/agents/deep_research_agent.py"
+      },
+      {
+        "id": "n4",
+        "label": "SSE 工作台",
+        "tag": "STEP 5",
+        "x": 750,
+        "y": 90,
+        "detail": "进度、总结与报告持续推送；支持下载 Markdown。",
+        "file": "14-experiment/research-assistant/demos/backend/app/api/main.py",
+        "kind": "finish"
+      }
+    ],
+    "routes": [
+      {
+        "id": "r0",
+        "from": "n0",
+        "to": "n1",
+        "d": "M 174 122 H 205",
+        "kind": "main"
+      },
+      {
+        "id": "r1",
+        "from": "n1",
+        "to": "n2",
+        "d": "M 354 122 H 385",
+        "kind": "main"
+      },
+      {
+        "id": "r2",
+        "from": "n2",
+        "to": "n3",
+        "d": "M 534 122 H 565",
+        "kind": "main"
+      },
+      {
+        "id": "r3",
+        "from": "n3",
+        "to": "n4",
+        "d": "M 714 122 H 745",
+        "kind": "finish"
+      },
+      {
+        "id": "repeat",
+        "from": "n2",
+        "to": "n1",
+        "d": "M 460 158 V 232 H 280 V 159",
+        "kind": "loop",
+        "label": "下一项任务",
+        "x": 370,
+        "y": 255
+      }
+    ],
+    "sequence": [
+      "n0",
+      "n1",
+      "n2",
+      "n1",
+      "n2",
+      "n3",
+      "n4"
+    ]
+  }
+];
